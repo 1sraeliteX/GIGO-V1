@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, User, Briefcase, Hash, Palette } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, User, Briefcase, Hash, Palette, DollarSign } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTradeColors } from '../context/TradeColorContext';
+import { useCurrency } from '../context/CurrencyContext';
+import { CURRENCIES } from '../constants/currencies';
 
 const WIN_PRESETS = ['#10b981', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'];
 const LOSS_PRESETS = ['#ef4444', '#f97316', '#e11d48', '#ec4899', '#a855f7', '#64748b'];
@@ -10,6 +12,7 @@ const LOSS_PRESETS = ['#ef4444', '#f97316', '#e11d48', '#ec4899', '#a855f7', '#6
 export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
   const { user, updateUser } = useAuth();
   const { colors, updateColors } = useTradeColors();
+  const { currency, currencyCode, setCurrencyCode } = useCurrency();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -164,7 +167,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-neutral-500 mb-1">Capital ($)</label>
+                    <label className="block text-xs text-neutral-500 mb-1">Capital ({currency.symbol})</label>
                     <input
                       type="text" inputMode="decimal" value={formCapital} onChange={(e) => setFormCapital(e.target.value)}
                       placeholder="0.00"
@@ -214,7 +217,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                     <div className="flex items-center gap-3 mt-1 ml-9">
                       {a.capital > 0 && (
                         <span className="text-xs text-neutral-400">
-                          ${Number(a.capital).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          {currency.symbol}{Number(a.capital).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </span>
                       )}
                       {a.max_trades_per_day != null && (
@@ -306,6 +309,29 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-semibold text-white">Currency</h3>
+            </div>
+            <div className="bg-neutral-800/50 rounded-xl border border-neutral-700/50 p-4">
+              <select
+                value={currencyCode}
+                onChange={(e) => setCurrencyCode(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.symbol} — {c.name} ({c.code})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-neutral-500 mt-2">
+                Preview: {currency.symbol}1,234.56
+              </p>
             </div>
           </div>
         </div>

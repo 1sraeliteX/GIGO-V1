@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/config');
 $dotenv->safeLoad();
 
-$config = require __DIR__ . '/../config/config.php';
+$config = require __DIR__ . '/config/config.php';
 $isDev = ($config['app']['env'] ?? 'production') === 'development';
 
 error_reporting($isDev ? E_ALL : 0);
@@ -21,8 +21,39 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
+    echo json_encode(['status' => 'ok']);
     exit;
 }
+
+set_exception_handler(function (\Throwable $e) use ($isDev) {
+    if (headers_sent() === false) {
+        header('Content-Type: application/json');
+    }
+    http_response_code(500);
+    $body = ['error' => 'Internal server error'];
+    if ($isDev) {
+        $body['error'] = $e->getMessage();
+        $body['file'] = $e->getFile() . ':' . $e->getLine();
+    }
+    echo json_encode($body);
+    exit;
+});
+
+register_shutdown_function(function () use ($isDev) {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (headers_sent() === false) {
+            header('Content-Type: application/json');
+            http_response_code(500);
+        }
+        $body = ['error' => 'Internal server error'];
+        if ($isDev) {
+            $body['error'] = $err['message'];
+            $body['file'] = $err['file'] . ':' . $err['line'];
+        }
+        echo json_encode($body);
+    }
+});
 
 use App\Core\Router;
 use App\Core\Request;
@@ -31,6 +62,7 @@ use App\Controllers\TradeController;
 use App\Controllers\StatsController;
 use App\Controllers\SettingsController;
 use App\Controllers\AccountController;
+use App\Controllers\SubscriptionController;
 
 $router = new Router();
 
@@ -53,5 +85,10 @@ $router->get('/api/accounts', [AccountController::class, 'index']);
 $router->post('/api/accounts', [AccountController::class, 'store']);
 $router->put('/api/accounts/{id}', [AccountController::class, 'update']);
 $router->delete('/api/accounts/{id}', [AccountController::class, 'destroy']);
+
+$router->get('/api/subscribe/status', [SubscriptionController::class, 'status']);
+$router->get('/api/subscribe/plans', [SubscriptionController::class, 'plans']);
+$router->post('/api/subscribe/initialize', [SubscriptionController::class, 'initialize']);
+$router->get('/api/subscribe/verify', [SubscriptionController::class, 'verify']);
 
 $router->dispatch(Request::method(), Request::uri());

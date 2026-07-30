@@ -1,4 +1,5 @@
 import { X, Edit2, Trash2, Plus } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 function calcDayPct(trades, capital) {
   if (!capital || capital <= 0) return null;
@@ -11,12 +12,8 @@ function calcDayPct(trades, capital) {
 }
 
 export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, onDelete, onAddTrade, accountCapital }) {
+  const { formatMoney, formatMoneyCompact, currency } = useCurrency();
   if (!date) return null;
-
-  const formatCurrency = (val) => {
-    const abs = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return val < 0 ? `-$${abs}` : `$${abs}`;
-  };
 
   const calcTradePct = (trade) => {
     if (trade.risk_type !== 'amount') return null;
@@ -34,7 +31,7 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
 
   const dayTotal = trades.reduce((sum, t) => sum + parseFloat(t.pnl_amount), 0);
   const dayPctText = calcDayPct(trades, accountCapital);
-  const dayTotalDisplay = dayPctText || (dayTotal >= 0 ? `+$${Math.round(dayTotal)}` : `-$${Math.round(Math.abs(dayTotal))}`);
+  const dayTotalDisplay = dayPctText || formatMoneyCompact(dayTotal);
   const atLimit = maxPerDay ? trades.length >= maxPerDay : false;
 
   return (
@@ -98,12 +95,12 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
               <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
                 <div className="min-w-0"><span className="text-neutral-500">Market:</span> <span className="text-neutral-300 capitalize">{trade.market_type}</span></div>
                 <div className="min-w-0"><span className="text-neutral-500">Lot:</span> <span className="text-neutral-300">{trade.lot_size}</span></div>
-                <div className="min-w-0"><span className="text-neutral-500">Risk:</span> <span className="text-neutral-300">{trade.risk_type === 'amount' ? '$' : ''}{trade.risk_value}{trade.risk_type === 'percentage' ? '%' : ''}</span></div>
-                <div className="min-w-0"><span className="text-neutral-500">Profit Target:</span> <span className="text-neutral-300">{trade.target_amount ? `$${Number(trade.target_amount).toLocaleString()}` : '-'}</span></div>
+                <div className="min-w-0"><span className="text-neutral-500">Risk:</span> <span className="text-neutral-300">{trade.risk_type === 'amount' ? currency.symbol : ''}{trade.risk_value}{trade.risk_type === 'percentage' ? '%' : ''}</span></div>
+                <div className="min-w-0"><span className="text-neutral-500">Profit Target:</span> <span className="text-neutral-300">{trade.target_amount ? formatMoneyCompact(trade.target_amount) : '-'}</span></div>
               </div>
               <div className="mt-1.5 sm:mt-2 flex items-center gap-1.5 sm:gap-2">
                 <span className="text-xs sm:text-sm font-semibold" style={{ color: trade.result === 'win' ? 'rgb(var(--win-color-rgb))' : 'rgb(var(--loss-color-rgb))' }}>
-                  {formatCurrency(trade.pnl_amount)}
+                  {formatMoney(trade.pnl_amount)}
                 </span>
                 {calcTradePct(trade) && (
                   <span className="text-[10px] sm:text-xs font-medium" style={{ color: trade.result === 'win' ? 'rgb(var(--win-color-rgb) / 0.7)' : 'rgb(var(--loss-color-rgb) / 0.7)' }}>

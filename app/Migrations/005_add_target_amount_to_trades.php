@@ -9,7 +9,9 @@ class AddTargetAmountToTrades
     public static function up(): void
     {
         $db = Database::getInstance();
-        $db->exec("ALTER TABLE trades ADD COLUMN target_amount REAL DEFAULT NULL");
+        $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        $type = $driver === 'mysql' ? 'DECIMAL(15,2)' : 'REAL';
+        $db->exec("ALTER TABLE trades ADD COLUMN target_amount {$type} DEFAULT NULL");
         echo "Added target_amount to trades.\n";
     }
 

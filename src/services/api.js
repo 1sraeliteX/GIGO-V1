@@ -12,11 +12,13 @@ async function request(endpoint, options = {}) {
     throw new Error('Network error — please check your connection and try again.');
   }
 
+  const text = await res.text();
   let data;
   try {
-    data = await res.json();
+    data = text ? JSON.parse(text) : {};
   } catch {
-    throw new Error(`Server returned ${res.status} with no JSON body.`);
+    const snippet = text.substring(0, 200);
+    throw new Error(`Server returned ${res.status} with no JSON body. Response: ${snippet || '(empty)'}`);
   }
 
   if (!res.ok) {
@@ -54,5 +56,11 @@ export const api = {
     create: (body) => request('/accounts', { method: 'POST', body: JSON.stringify(body) }),
     update: (id, body) => request(`/accounts/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id) => request(`/accounts/${id}`, { method: 'DELETE' }),
+  },
+  subscribe: {
+    status: () => request('/subscribe/status'),
+    plans: () => request('/subscribe/plans'),
+    initialize: (body) => request('/subscribe/initialize', { method: 'POST', body: JSON.stringify(body) }),
+    verify: (reference) => request(`/subscribe/verify?reference=${reference}`),
   },
 };

@@ -1,4 +1,5 @@
 import { X, Edit2, Trash2, Plus } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 function calcDayPct(trades, capital) {
   if (!capital || capital <= 0) return null;
@@ -11,12 +12,8 @@ function calcDayPct(trades, capital) {
 }
 
 export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, onAddTrade, accountCapital }) {
+  const { formatMoney, formatMoneyCompact, currency } = useCurrency();
   if (!isOpen) return null;
-
-  const formatCurrency = (val) => {
-    const abs = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return val < 0 ? `-$${abs}` : `$${abs}`;
-  };
 
   const calcTradePct = (trade) => {
     if (trade.risk_type !== 'amount') return null;
@@ -71,7 +68,7 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, o
             const dayTrades = groupByDate[date];
             const dayPnl = dayTrades.reduce((s, t) => s + parseFloat(t.pnl_amount), 0);
             const dayPctText = calcDayPct(dayTrades, accountCapital);
-            const dayDisplay = dayPctText || (dayPnl >= 0 ? `+$${Math.round(dayPnl)}` : `-$${Math.round(Math.abs(dayPnl))}`);
+            const dayDisplay = dayPctText || formatMoneyCompact(dayPnl);
             return (
               <div key={date}>
                 <div className="flex items-center justify-between mb-2 px-1 sm:px-2">
@@ -96,14 +93,14 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, o
                           <span className="text-neutral-500 text-[10px] sm:text-xs capitalize">{trade.market_type}</span>
                         </div>
                         <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 leading-tight">
-                          Lot {trade.lot_size} &middot; Risk ${trade.risk_value} &middot; Profit Target {trade.target_amount ? `$${Number(trade.target_amount).toLocaleString()}` : '-'}
+                          Lot {trade.lot_size} &middot; Risk {currency.symbol}{trade.risk_value} &middot; Profit Target {trade.target_amount ? formatMoneyCompact(trade.target_amount) : '-'}
                           {trade.notes && <span> &middot; &ldquo;{trade.notes}&rdquo;</span>}
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-2">
                         <div className="flex items-center gap-1 sm:gap-2">
                           <span className="text-xs sm:text-sm font-semibold" style={{ color: trade.result === 'win' ? 'rgb(var(--win-color-rgb))' : 'rgb(var(--loss-color-rgb))' }}>
-                            {formatCurrency(trade.pnl_amount)}
+                            {formatMoney(trade.pnl_amount)}
                           </span>
                           {calcTradePct(trade) && (
                             <span className="text-[10px] sm:text-xs font-medium" style={{ color: trade.result === 'win' ? 'rgb(var(--win-color-rgb) / 0.7)' : 'rgb(var(--loss-color-rgb) / 0.7)' }}>

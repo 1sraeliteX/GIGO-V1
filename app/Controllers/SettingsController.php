@@ -14,6 +14,12 @@ class SettingsController
             $user = Middleware::authenticate();
             $record = User::findById($user['sub']);
 
+            if (!$record) {
+                http_response_code(404);
+                echo json_encode(['error' => 'User not found']);
+                return;
+            }
+
             echo json_encode([
                 'max_trades_per_day' => $record['max_trades_per_day'] ?? null,
             ]);

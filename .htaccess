@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# If the requested file or directory exists, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Redirect all /api/* requests to index.php
+RewriteRule ^api/ index.php [QSA,L]
+
+# SPA fallback - serve index.html for non-API, non-file routes
+RewriteRule ^ index.html [QSA,L]

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ALL_INSTRUMENTS, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate, accounts, selectedAccountId }) {
+  const { currency, formatMoney } = useCurrency();
   const [form, setForm] = useState({
     trade_date: '',
     account_id: '',
@@ -174,7 +176,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
     }
   };
 
-  const riskUnit = form.risk_type === 'percentage' ? '%' : '$';
+  const riskUnit = form.risk_type === 'percentage' ? '%' : currency.symbol;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -193,7 +195,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
               <select value={form.account_id} onChange={(e) => handleChange('account_id', e.target.value)}
                 className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500">
                 {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}{a.capital > 0 ? ` ($${Number(a.capital).toLocaleString()})` : ''}</option>
+                  <option key={a.id} value={a.id}>{a.name}{a.capital > 0 ? ` (${formatMoney(a.capital)})` : ''}</option>
                 ))}
               </select>
             </div>
@@ -286,7 +288,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
                         ? 'bg-emerald-600 text-white'
                         : 'bg-neutral-800 text-neutral-400 hover:text-white'
                     }`}>
-                    {type === 'amount' ? 'Amount ($)' : 'Percentage (%)'}
+                    {type === 'amount' ? `Amount (${currency.symbol})` : 'Percentage (%)'}
                   </button>
                 ))}
               </div>
@@ -347,7 +349,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
           </div>
 
           <div>
-            <label className="block text-sm text-neutral-400 mb-1">Trade Outcome ($)</label>
+            <label className="block text-sm text-neutral-400 mb-1">Trade Outcome ({currency.symbol})</label>
             <input type="text" inputMode="decimal" value={form.pnl_amount} onChange={(e) => handleChange('pnl_amount', e.target.value)} required
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
           </div>

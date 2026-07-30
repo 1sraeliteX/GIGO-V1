@@ -105,6 +105,11 @@ class AuthController
 
     public function logout(): void
     {
-        echo json_encode(['message' => 'Logged out successfully']);
+        try {
+            echo json_encode(['message' => 'Logged out successfully']);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Logout failed: ' . $e->getMessage()]);
+        }
     }
 }

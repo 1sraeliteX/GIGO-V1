@@ -12,44 +12,48 @@ require_once __DIR__ . '/app/Migrations/004_add_accounts_table.php';
 require_once __DIR__ . '/app/Migrations/005_add_target_amount_to_trades.php';
 require_once __DIR__ . '/app/Migrations/006_add_max_trades_per_day_to_accounts.php';
 require_once __DIR__ . '/app/Migrations/007_add_trade_indexes.php';
-
-use App\Migrations\CreateUsersTable;
-use App\Migrations\CreateTradesTable;
-use App\Migrations\AddMaxTradesToUsers;
-use App\Migrations\AddAccountsTable;
-use App\Migrations\AddTargetAmountToTrades;
-use App\Migrations\AddMaxTradesPerDayToAccounts;
-use App\Migrations\AddTradeIndexes;
+require_once __DIR__ . '/app/Migrations/008_create_subscriptions_table.php';
 
 $action = $argv[1] ?? 'up';
 
 if ($action === 'up') {
-    CreateUsersTable::up();
-    CreateTradesTable::up();
-    AddMaxTradesToUsers::up();
-    AddAccountsTable::up();
-    AddTargetAmountToTrades::up();
-    AddMaxTradesPerDayToAccounts::up();
-    AddTradeIndexes::up();
+    $steps = [
+        'App\Migrations\CreateUsersTable::up',
+        'App\Migrations\CreateTradesTable::up',
+        'App\Migrations\AddMaxTradesToUsers::up',
+        'App\Migrations\AddAccountsTable::up',
+        'App\Migrations\AddTargetAmountToTrades::up',
+        'App\Migrations\AddMaxTradesPerDayToAccounts::up',
+        'App\Migrations\AddTradeIndexes::up',
+        'App\Migrations\CreateSubscriptionsTable::up',
+    ];
+    foreach ($steps as $step) {
+        try {
+            $step();
+        } catch (\Throwable $e) {
+            echo "Skipped: {$step} ({$e->getMessage()})\n";
+        }
+    }
     echo "Migrations complete.\n";
 } elseif ($action === 'down') {
-    AddTradeIndexes::down();
-    AddMaxTradesPerDayToAccounts::down();
-    AddTargetAmountToTrades::down();
-    AddAccountsTable::down();
-    AddMaxTradesToUsers::down();
-    CreateTradesTable::down();
-    CreateUsersTable::down();
+    \App\Migrations\CreateSubscriptionsTable::down();
+    \App\Migrations\AddTradeIndexes::down();
+    \App\Migrations\AddMaxTradesPerDayToAccounts::down();
+    \App\Migrations\AddTargetAmountToTrades::down();
+    \App\Migrations\AddAccountsTable::down();
+    \App\Migrations\AddMaxTradesToUsers::down();
+    \App\Migrations\CreateTradesTable::down();
+    \App\Migrations\CreateUsersTable::down();
     echo "Rollback complete.\n";
 } elseif ($action === 'fresh') {
-    CreateTradesTable::down();
-    CreateUsersTable::down();
-    CreateUsersTable::up();
-    CreateTradesTable::up();
-    AddMaxTradesToUsers::up();
-    AddAccountsTable::up();
-    AddTargetAmountToTrades::up();
-    AddMaxTradesPerDayToAccounts::up();
+    \App\Migrations\CreateTradesTable::down();
+    \App\Migrations\CreateUsersTable::down();
+    \App\Migrations\CreateUsersTable::up();
+    \App\Migrations\CreateTradesTable::up();
+    \App\Migrations\AddMaxTradesToUsers::up();
+    \App\Migrations\AddAccountsTable::up();
+    \App\Migrations\AddTargetAmountToTrades::up();
+    \App\Migrations\AddMaxTradesPerDayToAccounts::up();
     echo "Fresh migration complete.\n";
 } else {
     echo "Usage: php migrate.php [up|down|fresh]\n";

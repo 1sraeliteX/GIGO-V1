@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Moon, Sun, User, Filter, X } from 'lucide-react';
+import { Settings, Moon, Sun, User, Filter, X, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { CURRENCIES } from '../constants/currencies';
+import { useCurrency } from '../context/CurrencyContext';
 import { api } from '../services/api';
 import { INSTRUMENTS_BY_CATEGORY, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
 import StatCards from '../components/StatCards';
@@ -14,9 +16,11 @@ import TradeList from '../components/TradeList';
 import SettingsModal from '../components/SettingsModal';
 import AccountSwitcher from '../components/AccountSwitcher';
 import OnboardingOverlay from '../components/OnboardingOverlay';
+import SubscribeModal from '../components/SubscribeModal';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
+  const { currency, formatMoney, setCurrencyCode } = useCurrency();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -34,11 +38,13 @@ export default function Dashboard() {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [onboardingCapital, setOnboardingCapital] = useState('');
+  const [onboardingCurrency, setOnboardingCurrency] = useState('USD');
   const [creating, setCreating] = useState(false);
   const [statsKey, setStatsKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [symbolFilter, setSymbolFilter] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -80,7 +86,8 @@ export default function Dashboard() {
     if (!onboardingName.trim()) return;
     setCreating(true);
     try {
-      const data = await api.accounts.create({ name: onboardingName.trim(), capital: parseFloat(onboardingCapital) || 0 });
+      setCurrencyCode(onboardingCurrency);
+      const data = await api.accounts.create({ name: onboardingName.trim(), capital: parseFloat(onboardingCapital) || 0, currency: onboardingCurrency });
       await loadAccounts();
       setSelectedAccountId(data.id);
     } catch (err) {
@@ -100,10 +107,32 @@ export default function Dashboard() {
   }, [loadAccounts]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('reference');
+    if (ref) {
+      api.subscribe.verify(ref)
+        .then(() => {
+          fetchSubscription();
+          window.history.replaceState({}, '', window.location.pathname);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     if (accountsLoaded && accounts.length > 0 && !localStorage.getItem('onboarding_complete')) {
       setShowOnboarding(true);
     }
   }, [accountsLoaded, accounts]);
+
+  useEffect(() => {
+    if (accountsLoaded && accounts.length > 0 && !subLoading && !subscription.subscribed) {
+      setShowSubscribeModal(true);
+    }
+    if (subscription.subscribed && showSubscribeModal) {
+      setShowSubscribeModal(false);
+    }
+  }, [accountsLoaded, accounts, subLoading, subscription]);
 
   const fetchTrades = useCallback(async () => {
     setLoading(true);
@@ -216,65 +245,78 @@ export default function Dashboard() {
 
   return (
         <div className="min-h-screen bg-neutral-950">
-      <header className="border-b border-neutral-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-6 min-w-0">
-            <h1 className="text-base sm:text-xl font-bold text-white shrink-0">The boring trader</h1>
-            <div className="min-w-0 max-w-[140px] sm:max-w-none">
-              <AccountSwitcher
-                accounts={accounts}
-                selectedId={selectedAccountId}
-                onSelect={setSelectedAccountId}
-                onAccountsChange={loadAccounts}
-              />
+      {accounts.length > 0 && (
+        <header className="border-b border-neutral-800">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-6 min-w-0">
+              <h1 className="text-base sm:text-xl font-bold text-white shrink-0">GIGO</h1>
+              <div className="min-w-0 max-w-[140px] sm:max-w-none">
+                <AccountSwitcher
+                  accounts={accounts}
+                  selectedId={selectedAccountId}
+                  onSelect={setSelectedAccountId}
+                  onAccountsChange={loadAccounts}
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <button onClick={toggleTheme}
-              className="text-neutral-400 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-neutral-800"
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Moon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
-            </button>
-            <button onClick={() => setShowSettings(true)}
-              className="text-neutral-400 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-neutral-800"
-              title="Settings"
-            >
-              <Settings className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-            </button>
-            <div className="relative shrink-0" ref={menuRef}>
-              <button onClick={() => setShowMenu(v => !v)}
-                className="ml-1 sm:ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white transition-colors"
-                title="Menu"
-              >
-                {user?.name?.charAt(0)?.toUpperCase() || <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
-              </button>
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-1.5 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[170px] shadow-lg z-50">
-                  <div className="px-4 py-2 text-sm text-neutral-400 border-b border-neutral-700">
-                    {user?.name}
-                    {user?.email ? <span className="block text-xs text-neutral-500 truncate">{user.email}</span> : null}
-                  </div>
-                  <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
-                    className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
-                    Trades
-                  </button>
-                  <div className="border-t border-neutral-700" />
-                  <button onClick={logout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-neutral-700/50 transition-colors">
-                    Logout
-                  </button>
-                </div>
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {!subLoading && subscription.subscribed && (
+                <button
+                  onClick={() => setShowSubscribeModal(true)}
+                  className="flex items-center gap-1 text-[10px] sm:text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg px-2 sm:px-3 py-1.5 transition-colors"
+                  title="Upgrade subscription"
+                >
+                  <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">{subscription.days_remaining}d left</span>
+                  <span className="sm:hidden">{subscription.days_remaining}d</span>
+                </button>
               )}
+              <button onClick={toggleTheme}
+                className="text-neutral-400 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-neutral-800"
+                title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-[18px] sm:h-[18px]" /> : <Moon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />}
+              </button>
+              <button onClick={() => setShowSettings(true)}
+                className="text-neutral-400 hover:text-white transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-neutral-800"
+                title="Settings"
+              >
+                <Settings className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              </button>
+              <div className="relative shrink-0" ref={menuRef}>
+                <button onClick={() => setShowMenu(v => !v)}
+                  className="ml-1 sm:ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white transition-colors"
+                  title="Menu"
+                >
+                  {user?.name?.charAt(0)?.toUpperCase() || <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                </button>
+                {showMenu && (
+                  <div className="absolute right-0 top-full mt-1.5 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[170px] shadow-lg z-50">
+                    <div className="px-4 py-2 text-sm text-neutral-400 border-b border-neutral-700">
+                      {user?.name}
+                      {user?.email ? <span className="block text-xs text-neutral-500 truncate">{user.email}</span> : null}
+                    </div>
+                    <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
+                      Trades
+                    </button>
+                    <div className="border-t border-neutral-700" />
+                    <button onClick={logout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-neutral-700/50 transition-colors">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 pb-16 sm:pb-8">
         {!accountsLoaded ? null : accounts.length === 0 ? (
           <div className="max-w-md mx-auto mt-16 text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to The boring trader</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome to GIGO</h2>
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
             <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
               <div>
@@ -284,10 +326,18 @@ export default function Dashboard() {
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" required />
               </div>
               <div>
-                <label className="block text-sm text-neutral-400 mb-1">Capital Amount ($)</label>
-                <input type="number" step="0.01" min="0" value={onboardingCapital} onChange={(e) => setOnboardingCapital(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" required />
+                <label className="block text-sm text-neutral-400 mb-1">Capital Amount</label>
+                <div className="flex gap-2">
+                  <select value={onboardingCurrency} onChange={(e) => setOnboardingCurrency(e.target.value)}
+                    className="bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 w-20 shrink-0">
+                    {CURRENCIES.map(c => (
+                      <option key={c.code} value={c.code}>{c.code}</option>
+                    ))}
+                  </select>
+                  <input type="number" step="0.01" min="0" value={onboardingCapital} onChange={(e) => setOnboardingCapital(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 min-w-0 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" required />
+                </div>
               </div>
               <button type="submit" disabled={creating}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50">
@@ -311,7 +361,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-1 sm:gap-3 bg-neutral-900 rounded-xl border border-neutral-800 px-4 sm:px-5 py-3 flex-1 min-w-0">
                   <span className="text-xs sm:text-sm text-neutral-400 shrink-0">Account Capital:</span>
                   <span className="text-base sm:text-lg font-bold text-white truncate">
-                    ${Number(accountCapital).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatMoney(accountCapital)}
                   </span>
                 </div>
               )}
@@ -359,55 +409,67 @@ export default function Dashboard() {
         )}
       </main>
 
-      <button
-        onClick={handleOpenAddTrade}
-        className="fixed bottom-4 right-3 sm:bottom-8 sm:right-8 w-11 h-11 sm:w-14 sm:h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center text-lg sm:text-2xl transition-colors z-40"
-      >
-        +
-      </button>
+      {accounts.length > 0 && (
+        <button
+          onClick={handleOpenAddTrade}
+          className="fixed bottom-4 right-3 sm:bottom-8 sm:right-8 w-11 h-11 sm:w-14 sm:h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center text-lg sm:text-2xl transition-colors z-40"
+        >
+          +
+        </button>
+      )}
 
-      <TradeModal
-        isOpen={showAddModal}
-        onClose={handleCloseModal}
-        onSave={handleSave}
-        trade={editTrade}
-        prefillDate={prefillDate}
-        accounts={accounts}
-        selectedAccountId={selectedAccountId}
-      />
+      {accounts.length > 0 && (
+        <>
+          <TradeModal
+            isOpen={showAddModal}
+            onClose={handleCloseModal}
+            onSave={handleSave}
+            trade={editTrade}
+            prefillDate={prefillDate}
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+          />
 
-      <DayDetail
-        date={selectedDay}
-        trades={dayTrades}
-        maxPerDay={maxPerDay}
-        onClose={() => setSelectedDay(null)}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddTrade={handleDayAddTrade}
-        accountCapital={accountCapital}
-      />
+          <DayDetail
+            date={selectedDay}
+            trades={dayTrades}
+            maxPerDay={maxPerDay}
+            onClose={() => setSelectedDay(null)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onAddTrade={handleDayAddTrade}
+            accountCapital={accountCapital}
+          />
 
-      <TradeList
-        isOpen={showTradeList}
-        onClose={() => setShowTradeList(false)}
-        trades={trades}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddTrade={handleOpenAddTrade}
-        accountCapital={accountCapital}
-      />
+          <TradeList
+            isOpen={showTradeList}
+            onClose={() => setShowTradeList(false)}
+            trades={trades}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onAddTrade={handleOpenAddTrade}
+            accountCapital={accountCapital}
+          />
 
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        onAccountsChange={loadAccounts}
-      />
+          <SettingsModal
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            onAccountsChange={loadAccounts}
+          />
 
-      {showOnboarding && (
-        <OnboardingOverlay
-          onComplete={handleOnboardingComplete}
-          onSkip={handleOnboardingComplete}
-        />
+          {showOnboarding && (
+            <OnboardingOverlay
+              onComplete={handleOnboardingComplete}
+              onSkip={handleOnboardingComplete}
+            />
+          )}
+
+          <SubscribeModal
+            isOpen={showSubscribeModal}
+            onClose={() => setShowSubscribeModal(false)}
+            blocking={!subLoading && !subscription.subscribed}
+          />
+        </>
       )}
     </div>
   );

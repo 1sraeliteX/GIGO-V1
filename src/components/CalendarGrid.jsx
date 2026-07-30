@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
+import { useCurrency } from '../context/CurrencyContext';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function CalendarGrid({ year, month, trades, onDayClick, onPrevMonth, onNextMonth, accountCapital }) {
+  const { formatMoneyCompact } = useCurrency();
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -74,9 +76,7 @@ export default function CalendarGrid({ year, month, trades, onDayClick, onPrevMo
       if (r > 0) return `+${r}%`;
       if (r < 0) return `${r}%`;
     }
-    if (stats.pnl > 0) return `+$${Math.round(stats.pnl)}`;
-    if (stats.pnl < 0) return `-$${Math.round(Math.abs(stats.pnl))}`;
-    return '$0';
+    return formatMoneyCompact(stats.pnl);
   };
 
   return (

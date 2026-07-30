@@ -18,5 +18,15 @@ return [
     'app' => [
         'env' => $_ENV['APP_ENV'] ?? 'production',
         'default_currency' => $_ENV['DEFAULT_CURRENCY'] ?? 'USD',
+        'url' => $_ENV['APP_URL'] ?? 'http://localhost:5173',
+    ],
+    'paystack' => [
+        'public_key' => $_ENV['PAYSTACK_PUBLIC_KEY'] ?? '',
+        'secret_key' => $_ENV['PAYSTACK_SECRET_KEY'] ?? '',
+        'plans' => [
+            'monthly' => ['label' => 'Monthly', 'days' => 30, 'amount' => 4],
+            'quarterly' => ['label' => 'Quarterly', 'days' => 90, 'amount' => 10],
+            'yearly' => ['label' => 'Yearly', 'days' => 365, 'amount' => 30],
+        ],
     ],
 ];

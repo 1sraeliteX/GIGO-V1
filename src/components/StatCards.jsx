@@ -1,5 +1,6 @@
 import { api } from '../services/api';
 import { useState, useEffect } from 'react';
+import { useCurrency } from '../context/CurrencyContext';
 
 const cards = [
   { key: 'total_trades', label: 'Total Trades', icon: '📊' },
@@ -10,6 +11,7 @@ const cards = [
 ];
 
 export default function StatCards({ month, accountId, accountCapital, refreshKey }) {
+  const { formatMoney } = useCurrency();
   const [monthStats, setMonthStats] = useState(null);
   const [allTimeStats, setAllTimeStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,9 +52,15 @@ export default function StatCards({ month, accountId, accountCapital, refreshKey
     return { color: 'rgb(var(--white))' };
   };
 
-  const formatCurrency = (val) => {
-    const abs = Math.abs(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return val < 0 ? `-$${abs}` : `$${abs}`;
+  const getValue = (card) => {
+    if (!monthStats || !allTimeStats) return '-';
+    if (card.key === 'total_trades') return allTimeStats.total_trades;
+    if (card.key === 'balance') {
+      const balance = accountCapital > 0 ? accountCapital + allTimeStats.total_pnl : allTimeStats.total_pnl;
+      return formatMoney(balance);
+    }
+    if (card.key === 'win_rate') return `${allTimeStats.win_rate}%`;
+    return '-';
   };
 
   const formatDayLabel = (dateStr) => {
@@ -61,17 +69,6 @@ export default function StatCards({ month, accountId, accountCapital, refreshKey
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
-  };
-
-  const getValue = (card) => {
-    if (!monthStats || !allTimeStats) return '-';
-    if (card.key === 'total_trades') return allTimeStats.total_trades;
-    if (card.key === 'balance') {
-      const balance = accountCapital > 0 ? accountCapital + allTimeStats.total_pnl : allTimeStats.total_pnl;
-      return formatCurrency(balance);
-    }
-    if (card.key === 'win_rate') return `${allTimeStats.win_rate}%`;
-    return '-';
   };
 
   return (
@@ -85,12 +82,12 @@ export default function StatCards({ month, accountId, accountCapital, refreshKey
           {card.key === 'best_day' && allTimeStats.best_day ? (
             <div className="min-w-0">
               <div className="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">{formatDayLabel(allTimeStats.best_day.date)}</div>
-              <div className="text-lg sm:text-2xl font-bold truncate" style={{ color: 'rgb(var(--win-color-rgb))' }}>+${Number(Math.abs(allTimeStats.best_day.pnl)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div className="text-lg sm:text-2xl font-bold truncate" style={{ color: 'rgb(var(--win-color-rgb))' }}>{formatMoney(allTimeStats.best_day.pnl)}</div>
             </div>
           ) : card.key === 'worst_day' && allTimeStats.worst_day ? (
             <div className="min-w-0">
               <div className="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">{formatDayLabel(allTimeStats.worst_day.date)}</div>
-              <div className="text-lg sm:text-2xl font-bold truncate" style={{ color: 'rgb(var(--loss-color-rgb))' }}>{formatCurrency(allTimeStats.worst_day.pnl)}</div>
+              <div className="text-lg sm:text-2xl font-bold truncate" style={{ color: 'rgb(var(--loss-color-rgb))' }}>{formatMoney(allTimeStats.worst_day.pnl)}</div>
             </div>
           ) : (
             <div className={`text-lg sm:text-2xl font-bold truncate`} style={getValueColor(card)}>

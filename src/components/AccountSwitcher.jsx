@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { api } from '../services/api';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function AccountSwitcher({ accounts, selectedId, onSelect, onAccountsChange }) {
+  const { currency, formatMoney } = useCurrency();
   const [open, setOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
@@ -76,7 +78,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
               <span className="truncate">{a.name}</span>
               {a.capital > 0 && (
                 <span className="text-[10px] sm:text-xs text-neutral-500 ml-1 sm:ml-2">
-                  ${Number(a.capital).toLocaleString()}
+                  {formatMoney(a.capital)}
                 </span>
               )}
             </button>
@@ -104,7 +106,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
                   <p className="text-[10px] text-red-400">{createError}</p>
                 )}
                 <input type="text" inputMode="decimal" value={formCapital} onChange={(e) => setFormCapital(e.target.value)}
-                  placeholder="Capital ($)"
+                  placeholder={`Capital (${currency.symbol})`}
                   className="w-full bg-neutral-900 border border-neutral-700 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs text-white focus:outline-none focus:border-emerald-500" />
                 <button onClick={handleCreate} disabled={creating}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors disabled:opacity-50">
