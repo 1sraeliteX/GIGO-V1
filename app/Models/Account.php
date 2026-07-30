@@ -26,11 +26,12 @@ class Account
     public static function create(int $userId, array $data): int
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare('INSERT INTO accounts (user_id, name, capital, max_trades_per_day) VALUES (:user_id, :name, :capital, :max_trades_per_day)');
+        $stmt = $db->prepare('INSERT INTO accounts (user_id, name, capital, currency, max_trades_per_day) VALUES (:user_id, :name, :capital, :currency, :max_trades_per_day)');
         $stmt->execute([
             ':user_id' => $userId,
             ':name' => $data['name'],
             ':capital' => (float) ($data['capital'] ?? 0),
+            ':currency' => $data['currency'] ?? 'USD',
             ':max_trades_per_day' => isset($data['max_trades_per_day']) && $data['max_trades_per_day'] !== '' ? (int) $data['max_trades_per_day'] : null,
         ]);
         return (int) $db->lastInsertId();

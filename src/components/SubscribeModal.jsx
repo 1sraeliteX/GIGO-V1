@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
-import { X, Clock, CheckCircle } from 'lucide-react';
+import { X, CheckCircle, CreditCard, Wallet, Clock } from 'lucide-react';
 import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useCurrency } from '../context/CurrencyContext';
 
-const PLAN_ICONS = { monthly: '30d', quarterly: '90d', yearly: '365d' };
+const USD_RATE = 1400;
 
 export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
-  const { user, fetchSubscription } = useAuth();
-  const { currency } = useCurrency();
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState({});
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
+  const [cryptoTooltip, setCryptoTooltip] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState('plans');
@@ -18,6 +16,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
   useEffect(() => {
     if (isOpen) {
       setStep('plans');
+      setShowPaymentOptions(false);
       setError('');
       api.subscribe.plans().then(d => setPlans(d.plans)).catch(() => {});
     }
@@ -25,7 +24,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
 
   if (!isOpen) return null;
 
-  const handleSubscribe = async () => {
+  const handleOnlinePayment = async () => {
     setLoading(true);
     setError('');
     try {
@@ -36,6 +35,11 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
       setError(err.message);
       setLoading(false);
     }
+  };
+
+  const handleCrypto = () => {
+    setCryptoTooltip(true);
+    setTimeout(() => setCryptoTooltip(false), 3000);
   };
 
   return (
@@ -68,58 +72,79 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
           ) : (
             <>
               <p className="text-sm text-neutral-400">
-                {blocking ? 'Your subscription has expired. Choose a plan to regain access to your trading journal.' : 'Choose a plan to continue using TradeJournal.'}
+                {blocking ? 'Your subscription has expired. Choose a plan to regain access.' : 'Choose a plan to continue using GIGO.'}
               </p>
 
-              <div className="space-y-3">
-                {Object.entries(plans).map(([key, plan]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedPlan(key)}
-                    className={`w-full text-left rounded-xl border p-4 transition-all ${
-                      selectedPlan === key
-                        ? 'border-emerald-500 bg-emerald-500/5'
-                        : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          selectedPlan === key ? 'bg-emerald-600 text-white' : 'bg-neutral-700 text-neutral-300'
-                        }`}>
-                          {PLAN_ICONS[key]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{plan.label}</p>
-                          <p className="text-xs text-neutral-500">{plan.days} days of access</p>
-                        </div>
+              {Object.entries(plans).map(([key, plan]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => { setSelectedPlan(key); setShowPaymentOptions(true); }}
+                  className={`w-full text-left rounded-xl border p-4 transition-all ${
+                    selectedPlan === key
+                      ? 'border-emerald-500 bg-emerald-500/5'
+                      : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${
+                        selectedPlan === key ? 'bg-emerald-600 text-white' : 'bg-neutral-700 text-neutral-300'
+                      }`}>
+                        30d
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-white">${plan.amount}</p>
-                        <p className="text-xs text-neutral-400">₦{plan.amount * 1400}</p>
-                        <p className="text-[10px] text-neutral-500">${(plan.amount / plan.days).toFixed(2)}/day</p>
+                      <div>
+                        <p className="text-sm font-medium text-white">{plan.label}</p>
+                        <p className="text-xs text-neutral-500">{plan.days} days of access</p>
                       </div>
                     </div>
-                    {selectedPlan === key && (
-                      <div className="mt-3 flex items-center gap-1.5 text-emerald-400 text-xs">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Selected
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-white">₦{plan.amount.toLocaleString()}</p>
+                      <p className="text-xs text-neutral-400">~${(plan.amount / USD_RATE).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  {selectedPlan === key && showPaymentOptions && (
+                    <div className="mt-3 flex items-center gap-1.5 text-emerald-400 text-xs">
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Selected
+                    </div>
+                  )}
+                </button>
+              ))}
+
+              {showPaymentOptions && (
+                <div className="space-y-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleOnlinePayment}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium transition-colors disabled:opacity-50"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    {loading ? 'Processing...' : 'Online Payment'}
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={handleCrypto}
+                      className="w-full flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg py-3 font-medium transition-colors border border-neutral-700"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      Crypto
+                    </button>
+                    {cryptoTooltip && (
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-neutral-700 text-white text-xs px-3 py-1 rounded-lg whitespace-nowrap">
+                        Coming soon
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-neutral-700 rotate-45" />
                       </div>
                     )}
-                  </button>
-                ))}
-              </div>
+                  </div>
+                </div>
+              )}
 
-              <button
-                onClick={handleSubscribe}
-                disabled={loading}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium transition-colors disabled:opacity-50 mt-2"
-              >
-                {loading ? 'Processing...' : `Pay $${plans[selectedPlan]?.amount || 0} with Paystack`}
-              </button>
-
-              <p className="text-[10px] text-neutral-600 text-center">
-                $1 = ₦1,400 &middot; Secure payment via Paystack. You will be redirected to complete payment.
+              <p className="text-xs text-neutral-400 text-center leading-relaxed">
+                $1 ≈ ₦{USD_RATE.toLocaleString()} &middot; Secure payment via Paystack.<br />You will be redirected to complete payment.
               </p>
             </>
           )}

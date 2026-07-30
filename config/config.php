@@ -24,9 +24,7 @@ return [
         'public_key' => $_ENV['PAYSTACK_PUBLIC_KEY'] ?? '',
         'secret_key' => $_ENV['PAYSTACK_SECRET_KEY'] ?? '',
         'plans' => [
-            'monthly' => ['label' => 'Monthly', 'days' => 30, 'amount' => 4],
-            'quarterly' => ['label' => 'Quarterly', 'days' => 90, 'amount' => 10],
-            'yearly' => ['label' => 'Yearly', 'days' => 365, 'amount' => 30],
+            'monthly' => ['label' => 'Monthly', 'days' => 30, 'amount' => 2000],
         ],
     ],
 ];

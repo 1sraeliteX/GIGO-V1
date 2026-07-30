@@ -16,6 +16,8 @@ class SubscriptionController
         $ch = curl_init('https://api.paystack.co/' . ltrim($path, '/'));
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $secret,
                 'Content-Type: application/json',
@@ -28,8 +30,13 @@ class SubscriptionController
         }
 
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($curlError) {
+            return ['status' => 0, 'body' => ['message' => 'cURL error: ' . $curlError]];
+        }
 
         $body = json_decode($response, true);
         return ['status' => $httpCode, 'body' => $body ?: []];
@@ -102,6 +109,12 @@ class SubscriptionController
             $config = require __DIR__ . '/../../config/config.php';
             $plans = $config['paystack']['plans'];
 
+            if (empty($config['paystack']['secret_key']) || str_contains($config['paystack']['secret_key'], 'xxxxx')) {
+                http_response_code(502);
+                echo json_encode(['error' => 'Payment not available — Paystack keys not configured. Contact support.']);
+                return;
+            }
+
             if (!isset($plans[$planType])) {
                 http_response_code(422);
                 echo json_encode(['error' => 'Invalid plan type']);
@@ -121,7 +134,7 @@ class SubscriptionController
                     'plan_type' => $planType,
                     'days' => $plan['days'],
                 ],
-                'callback_url' => $config['app']['url'] . '/subscribe/callback',
+                'callback_url' => $config['app']['url'],
             ]);
 
             if (!($result['body']['status'] ?? false)) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Moon, Sun, User, Filter, X, Clock } from 'lucide-react';
+import { Settings, Moon, Sun, User, Filter, X, Clock, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { CURRENCIES } from '../constants/currencies';
@@ -15,7 +15,6 @@ import DayDetail from '../components/DayDetail';
 import TradeList from '../components/TradeList';
 import SettingsModal from '../components/SettingsModal';
 import AccountSwitcher from '../components/AccountSwitcher';
-import OnboardingOverlay from '../components/OnboardingOverlay';
 import SubscribeModal from '../components/SubscribeModal';
 
 export default function Dashboard() {
@@ -40,16 +39,30 @@ export default function Dashboard() {
   const [onboardingCapital, setOnboardingCapital] = useState('');
   const [onboardingCurrency, setOnboardingCurrency] = useState('USD');
   const [creating, setCreating] = useState(false);
+  const [onboardingError, setOnboardingError] = useState('');
   const [statsKey, setStatsKey] = useState(0);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [symbolFilter, setSymbolFilter] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [currencySearch, setCurrencySearch] = useState('');
   const menuRef = useRef(null);
+  const currencyRef = useRef(null);
 
   useEffect(() => {
     const handle = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+
+  useEffect(() => {
+    const handle = (e) => {
+      if (currencyRef.current && !currencyRef.current.contains(e.target)) {
+        setShowCurrencyDropdown(false);
+        setCurrencySearch('');
+      }
     };
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
@@ -83,6 +96,7 @@ export default function Dashboard() {
 
   const handleCreateAccount = async (e) => {
     e.preventDefault();
+    setOnboardingError('');
     if (!onboardingName.trim()) return;
     setCreating(true);
     try {
@@ -90,16 +104,12 @@ export default function Dashboard() {
       const data = await api.accounts.create({ name: onboardingName.trim(), capital: parseFloat(onboardingCapital) || 0, currency: onboardingCurrency });
       await loadAccounts();
       setSelectedAccountId(data.id);
+      setShowSubscribeModal(true);
     } catch (err) {
-      console.error(err);
+      setOnboardingError(err.message);
     } finally {
       setCreating(false);
     }
-  };
-
-  const handleOnboardingComplete = () => {
-    localStorage.setItem('onboarding_complete', 'true');
-    setShowOnboarding(false);
   };
 
   useEffect(() => {
@@ -120,19 +130,16 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (accountsLoaded && accounts.length > 0 && !localStorage.getItem('onboarding_complete')) {
-      setShowOnboarding(true);
-    }
-  }, [accountsLoaded, accounts]);
-
-  useEffect(() => {
     if (accountsLoaded && accounts.length > 0 && !subLoading && !subscription.subscribed) {
       setShowSubscribeModal(true);
     }
+  }, [accountsLoaded, accounts, subLoading, subscription.subscribed]);
+
+  useEffect(() => {
     if (subscription.subscribed && showSubscribeModal) {
       setShowSubscribeModal(false);
     }
-  }, [accountsLoaded, accounts, subLoading, subscription]);
+  }, [subscription.subscribed, showSubscribeModal]);
 
   const fetchTrades = useCallback(async () => {
     setLoading(true);
@@ -291,11 +298,25 @@ export default function Dashboard() {
                   {user?.name?.charAt(0)?.toUpperCase() || <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 top-full mt-1.5 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[170px] shadow-lg z-50">
+                  <div className="absolute right-0 top-full mt-1.5 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[200px] shadow-lg z-50">
                     <div className="px-4 py-2 text-sm text-neutral-400 border-b border-neutral-700">
                       {user?.name}
                       {user?.email ? <span className="block text-xs text-neutral-500 truncate">{user.email}</span> : null}
                     </div>
+                    {subscription.subscribed && (
+                      <div className="px-4 py-3 border-b border-neutral-700">
+                        <div className="flex items-center justify-between text-xs text-neutral-400 mb-1.5">
+                          <span>{subscription.days_remaining} days left</span>
+                          <span>{subscription.plan_type}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-neutral-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-emerald-500 rounded-full transition-all"
+                            style={{ width: `${Math.min(100, (subscription.days_remaining / 30) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
                     <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Trades
@@ -328,20 +349,61 @@ export default function Dashboard() {
               <div>
                 <label className="block text-sm text-neutral-400 mb-1">Capital Amount</label>
                 <div className="flex gap-2">
-                  <select value={onboardingCurrency} onChange={(e) => setOnboardingCurrency(e.target.value)}
-                    className="bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 w-20 shrink-0">
-                    {CURRENCIES.map(c => (
-                      <option key={c.code} value={c.code}>{c.code}</option>
-                    ))}
-                  </select>
+                  <div className="relative shrink-0" ref={currencyRef}>
+                    <button type="button" onClick={() => setShowCurrencyDropdown(v => !v)}
+                      className="flex items-center gap-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 w-24">
+                      <span className="truncate">{onboardingCurrency}</span>
+                      <ChevronDown className={`w-3.5 h-3.5 shrink-0 ml-auto transition-transform ${showCurrencyDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showCurrencyDropdown && (
+                      <div className="absolute top-full left-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg w-64 max-h-60 overflow-hidden shadow-xl z-50">
+                        <div className="p-2 border-b border-neutral-700">
+                          <input type="text" value={currencySearch} onChange={(e) => setCurrencySearch(e.target.value)}
+                            placeholder="Search currency..."
+                            className="w-full bg-neutral-700 border border-neutral-600 rounded-md px-3 py-1.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500"
+                            autoFocus />
+                        </div>
+                        <div className="overflow-y-auto max-h-48">
+                          {CURRENCIES.filter(c =>
+                            c.code.toLowerCase().includes(currencySearch.toLowerCase()) ||
+                            c.name.toLowerCase().includes(currencySearch.toLowerCase())
+                          ).map(c => (
+                            <button key={c.code} type="button" onClick={() => { setOnboardingCurrency(c.code); setShowCurrencyDropdown(false); setCurrencySearch(''); }}
+                              className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center gap-2 ${
+                                onboardingCurrency === c.code
+                                  ? 'text-emerald-400 bg-emerald-500/10'
+                                  : 'text-white hover:bg-neutral-700/50'
+                              }`}>
+                              <span className="text-neutral-400 w-6">{c.symbol}</span>
+                              <span className="font-medium">{c.code}</span>
+                              <span className="text-neutral-500">— {c.name}</span>
+                            </button>
+                          ))}
+                          {CURRENCIES.filter(c =>
+                            c.code.toLowerCase().includes(currencySearch.toLowerCase()) ||
+                            c.name.toLowerCase().includes(currencySearch.toLowerCase())
+                          ).length === 0 && (
+                            <p className="px-3 py-4 text-sm text-neutral-500 text-center">No currencies found</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <input type="number" step="0.01" min="0" value={onboardingCapital} onChange={(e) => setOnboardingCapital(e.target.value)}
                     placeholder="0.00"
                     className="flex-1 min-w-0 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" required />
                 </div>
               </div>
+              {onboardingError && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{onboardingError}</div>
+              )}
               <button type="submit" disabled={creating}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50">
                 {creating ? 'Creating...' : 'Create Account'}
+              </button>
+              <button type="button" onClick={logout}
+                className="w-full text-sm text-neutral-500 hover:text-red-400 transition-colors py-1">
+                Logout
               </button>
             </form>
           </div>
@@ -456,13 +518,6 @@ export default function Dashboard() {
             onClose={() => setShowSettings(false)}
             onAccountsChange={loadAccounts}
           />
-
-          {showOnboarding && (
-            <OnboardingOverlay
-              onComplete={handleOnboardingComplete}
-              onSkip={handleOnboardingComplete}
-            />
-          )}
 
           <SubscribeModal
             isOpen={showSubscribeModal}
