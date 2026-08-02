@@ -137,12 +137,17 @@ export default function Dashboard() {
   }, [accountsLoaded, accounts]);
 
   useEffect(() => {
-    // Subscribe modal is fully disabled — controlled exclusively from the admin panel.
-    // Nothing here triggers it automatically.
-    if ((subscription.subscribed || subscription.override) && showSubscribeModal) {
-      setShowSubscribeModal(false);
+    // Modal visibility is controlled by the admin via subscription_override.
+    // override=false (Showing) + not subscribed + has accounts = show modal.
+    // override=true  (Hidden)  OR subscribed = hide modal immediately.
+    if (!subLoading && accountsLoaded && accounts.length > 0) {
+      if (!subscription.subscribed && !subscription.override) {
+        setShowSubscribeModal(true);
+      } else {
+        setShowSubscribeModal(false);
+      }
     }
-  }, [accountsLoaded, accounts, subLoading, subscription]);
+  }, [subscription.subscribed, subscription.override, subLoading, accountsLoaded, accounts.length]);
 
   const fetchTrades = useCallback(async () => {
     setLoading(true);

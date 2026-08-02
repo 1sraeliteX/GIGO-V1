@@ -100,5 +100,7 @@ $router->delete('/api/admin/users/{id}',                      [AdminController::
 $router->get('/api/admin/users/{id}/subscriptions',           [AdminController::class, 'listUserSubscriptions']);
 $router->post('/api/admin/users/{id}/subscriptions',          [AdminController::class, 'grantSubscription']);
 $router->delete('/api/admin/subscriptions/{id}',              [AdminController::class, 'revokeSubscription']);
+$router->get('/api/admin/plans',                              [AdminController::class, 'getPlans']);
+$router->put('/api/admin/plans/{key}',                        [AdminController::class, 'updatePlan']);
 
 $router->dispatch(Request::method(), Request::uri());

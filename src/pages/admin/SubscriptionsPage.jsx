@@ -84,7 +84,6 @@ function OverrideDaysEditor({ user, onSaved }) {
   const [days, setDays]     = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
-  const [error, setError]   = useState('');
   const { success, error: toastError } = useToast();
 
   // Sync the input to what's stored whenever the user row updates
@@ -103,7 +102,6 @@ function OverrideDaysEditor({ user, onSaved }) {
     const numDays = parseInt(days, 10);
     if (!numDays || numDays <= 0) return;
     setSaving(true);
-    setError('');
     try {
       await api.admin.users.setOverrideDays(user.id, numDays);
       success(`Countdown set to ${numDays} day${numDays !== 1 ? 's' : ''} for ${user.name}`);
@@ -119,7 +117,6 @@ function OverrideDaysEditor({ user, onSaved }) {
 
   const handleClear = async () => {
     setSaving(true);
-    setError('');
     try {
       await api.admin.users.setOverrideDays(user.id, 0);
       success(`Countdown cleared for ${user.name} — set to unlimited`);
@@ -171,7 +168,6 @@ function OverrideDaysEditor({ user, onSaved }) {
           <Infinity className="w-3.5 h-3.5" />
         </button>
       </div>
-      {error && <p className="text-[10px] text-red-400">{error}</p>}
       {user.subscription_override_end
         ? <p className="text-[10px] text-neutral-600">Ends {new Date(user.subscription_override_end).toLocaleDateString()}</p>
         : <p className="text-[10px] text-neutral-600 flex items-center gap-1"><Infinity className="w-2.5 h-2.5" /> Unlimited</p>
@@ -239,7 +235,6 @@ function ModalToggle({ user, onToggled }) {
         }
         {isHidden ? 'Hidden' : 'Showing'}
       </button>
-      {error && <p className="text-[10px] text-red-400">{error}</p>}
     </div>
   );
 }

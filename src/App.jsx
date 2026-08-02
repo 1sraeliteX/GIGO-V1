@@ -7,6 +7,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminOverviewPage from './pages/admin/AdminOverviewPage';
 import UsersPage from './pages/admin/UsersPage';
 import SubscriptionsPage from './pages/admin/SubscriptionsPage';
+import PlansPage from './pages/admin/PlansPage';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -38,8 +39,9 @@ export default function App() {
         element={<AdminRoute><AdminLayout /></AdminRoute>}
       >
         <Route index          element={<AdminOverviewPage />} />
-        <Route path="users"   element={<UsersPage />} />
+        <Route path="users"         element={<UsersPage />} />
         <Route path="subscriptions" element={<SubscriptionsPage />} />
+        <Route path="plans"         element={<PlansPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

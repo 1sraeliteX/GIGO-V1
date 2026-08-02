@@ -110,8 +110,34 @@ class SubscriptionController
     public function plans(): void
     {
         try {
-            $config = require __DIR__ . '/../../config/config.php';
-            echo json_encode(['plans' => $config['paystack']['plans']]);
+            $db = Database::getInstance();
+            $stmt = $db->query(
+                "SELECT plan_key, label, days, amount_usd, ngn_rate, description, payment_link, is_active
+                 FROM plan_settings WHERE is_active = 1 ORDER BY days ASC"
+            );
+            $rows = $stmt->fetchAll();
+
+            // Shape into the keyed object the frontend already expects:
+            // { monthly: { label, days, amount, ngn_rate, description, payment_link }, ... }
+            $plans = [];
+            foreach ($rows as $row) {
+                $plans[$row['plan_key']] = [
+                    'label'        => $row['label'],
+                    'days'         => (int)   $row['days'],
+                    'amount'       => (float) $row['amount_usd'],
+                    'ngn_rate'     => (int)   $row['ngn_rate'],
+                    'description'  => $row['description'],
+                    'payment_link' => $row['payment_link'] ?? null,
+                ];
+            }
+
+            // Fallback to config if DB table is somehow empty
+            if (empty($plans)) {
+                $config = require __DIR__ . '/../../config/config.php';
+                $plans  = $config['paystack']['plans'];
+            }
+
+            echo json_encode(['plans' => $plans]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to fetch plans: ' . $e->getMessage()]);
@@ -126,26 +152,35 @@ class SubscriptionController
 
             $planType = $data['plan_type'] ?? '';
             $config = require __DIR__ . '/../../config/config.php';
-            $plans = $config['paystack']['plans'];
 
-            if (!isset($plans[$planType])) {
-                http_response_code(422);
-                echo json_encode(['error' => 'Invalid plan type']);
-                return;
+            // Load plan from DB (authoritative source), fall back to config
+            $db = Database::getInstance();
+            $planRow = $db->prepare('SELECT label, days, amount_usd FROM plan_settings WHERE plan_key = :key AND is_active = 1 LIMIT 1');
+            $planRow->execute([':key' => $planType]);
+            $planData = $planRow->fetch();
+
+            if (!$planData) {
+                // Try config fallback
+                $plans = $config['paystack']['plans'];
+                if (!isset($plans[$planType])) {
+                    http_response_code(422);
+                    echo json_encode(['error' => 'Invalid plan type']);
+                    return;
+                }
+                $planData = ['days' => $plans[$planType]['days'], 'amount_usd' => $plans[$planType]['amount']];
             }
 
-            $plan = $plans[$planType];
-            $amountKobo = $plan['amount'] * 100;
-            $reference = 'SUB-' . $user['sub'] . '-' . time();
+            $amountKobo = (float)$planData['amount_usd'] * 100;
+            $reference  = 'SUB-' . $user['sub'] . '-' . time();
 
             $result = $this->paystackRequest('/transaction/initialize', 'POST', [
                 'email' => $user['email'],
                 'amount' => $amountKobo,
                 'reference' => $reference,
                 'metadata' => [
-                    'user_id' => $user['sub'],
+                    'user_id'   => $user['sub'],
                     'plan_type' => $planType,
-                    'days' => $plan['days'],
+                    'days'      => $planData['days'],
                 ],
                 'callback_url' => $config['app']['url'] . '/subscribe/callback',
             ]);

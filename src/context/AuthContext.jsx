@@ -21,18 +21,36 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (token) {
-      fetchSubscription();
-      // Poll every 30 seconds so admin-side changes (override toggle, granted
-      // subscriptions) propagate to the user without requiring a re-login.
-      const interval = setInterval(fetchSubscription, 30_000);
-      return () => clearInterval(interval);
-    }
+    if (!token) return;
+
+    fetchSubscription(true); // show spinner on initial load
+
+    // Poll every 3 seconds — keeps admin-side changes (modal toggle, override,
+    // granted subscriptions) near-instant on the user side without requiring
+    // a refresh or re-login. Lightweight: one small authenticated GET per 3s.
+    const interval = setInterval(() => fetchSubscription(false), 3_000);
+
+    // Also re-fetch immediately when the user switches back to this tab
+    // or focuses the window — catches admin changes made while tab was hidden.
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchSubscription(false);
+    };
+    const handleFocus = () => fetchSubscription(false);
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [token]);
 
-  const fetchSubscription = async () => {
+  const fetchSubscription = async (showLoading = false) => {
     if (!localStorage.getItem('token')) return;
-    setSubLoading(true);
+    // Only show the loading spinner on the initial fetch, not background polls
+    if (showLoading) setSubLoading(true);
     try {
       const data = await api.subscribe.status();
       setSubscription(data);
@@ -42,20 +60,19 @@ export function AuthProvider({ children }) {
         logout();
         return;
       }
-      // Network / server error — don't reset subscription state so overridden
-      // users aren't wrongly blocked if the backend has a momentary hiccup.
-      // Only reset if we had no prior subscription info.
+      // Network / server error — preserve existing subscription state
       setSubscription(prev =>
         prev.subscribed ? prev : { subscribed: false, days_remaining: 0 }
       );
     } finally {
-      setSubLoading(false);
+      if (showLoading) setSubLoading(false);
     }
   };
 
   const login = (userData, jwt) => {
     setUser(userData);
     setToken(jwt);
+    setSubLoading(true);
     localStorage.setItem('token', jwt);
     localStorage.setItem('user', JSON.stringify(userData));
   };

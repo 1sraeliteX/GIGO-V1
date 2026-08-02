@@ -84,5 +84,9 @@ export const api = {
     subscriptions: {
       revoke: (id) => request(`/admin/subscriptions/${id}`, { method: 'DELETE' }),
     },
+    plans: {
+      list: ()           => request('/admin/plans'),
+      update: (key, body) => request(`/admin/plans/${key}`, { method: 'PUT', body: JSON.stringify(body) }),
+    },
   },
 };

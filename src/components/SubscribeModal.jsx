@@ -29,6 +29,14 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
     setLoading(true);
     setError('');
     try {
+      const plan = plans[selectedPlan];
+      // If admin set a direct payment link, redirect straight to it —
+      // no server-side Paystack initialization needed.
+      if (plan?.payment_link) {
+        window.location.href = plan.payment_link;
+        return;
+      }
+      // Otherwise fall back to Paystack API initialization
       const data = await api.subscribe.initialize({ plan_type: selectedPlan });
       setStep('redirect');
       window.location.href = data.authorization_url;
@@ -96,7 +104,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-white">${plan.amount}</p>
-                        <p className="text-xs text-neutral-400">₦{plan.amount * 1400}</p>
+                        <p className="text-xs text-neutral-400">₦{(plan.amount * (plan.ngn_rate ?? 1400)).toLocaleString()}</p>
                         <p className="text-[10px] text-neutral-500">${(plan.amount / plan.days).toFixed(2)}/day</p>
                       </div>
                     </div>
@@ -115,11 +123,16 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
                 disabled={loading}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium transition-colors disabled:opacity-50 mt-2"
               >
-                {loading ? 'Processing...' : `Pay $${plans[selectedPlan]?.amount || 0} with Paystack`}
+                {loading
+                  ? 'Processing...'
+                  : plans[selectedPlan]?.payment_link
+                    ? `Pay $${plans[selectedPlan]?.amount || 0} →`
+                    : `Pay $${plans[selectedPlan]?.amount || 0} with Paystack`
+                }
               </button>
 
               <p className="text-[10px] text-neutral-600 text-center">
-                $1 = ₦1,400 &middot; Secure payment via Paystack. You will be redirected to complete payment.
+                $1 = ₦{(plans[selectedPlan]?.ngn_rate ?? 1400).toLocaleString()} &middot; Secure payment. You will be redirected to complete payment.
               </p>
             </>
           )}

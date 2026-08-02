@@ -399,4 +399,112 @@ class AdminController
             echo json_encode(['error' => 'Failed to fetch stats: ' . $e->getMessage()]);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // GET /api/admin/plans
+    // Returns all plan_settings rows.
+    // -------------------------------------------------------------------------
+    public function getPlans(): void
+    {
+        try {
+            Middleware::authorizeAdmin();
+            $db = Database::getInstance();
+            $stmt = $db->query(
+                "SELECT id, plan_key, label, days, amount_usd, ngn_rate, description, payment_link, is_active
+                 FROM plan_settings ORDER BY days ASC"
+            );
+            echo json_encode(['plans' => $stmt->fetchAll()]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch plans: ' . $e->getMessage()]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // PUT /api/admin/plans/{key}
+    // Update any fields of a plan by plan_key (monthly | quarterly | yearly).
+    // Body: { label, days, amount_usd, ngn_rate, description, payment_link, is_active }
+    // -------------------------------------------------------------------------
+    public function updatePlan(string $key): void
+    {
+        try {
+            Middleware::authorizeAdmin();
+            $db   = Database::getInstance();
+            $data = Request::body();
+
+            // Verify the plan exists
+            $check = $db->prepare('SELECT id FROM plan_settings WHERE plan_key = :key LIMIT 1');
+            $check->execute([':key' => $key]);
+            if (!$check->fetch()) {
+                http_response_code(404);
+                echo json_encode(['error' => "Plan '{$key}' not found"]);
+                return;
+            }
+
+            $fields = [];
+            $params = [':key' => $key];
+
+            if (array_key_exists('label', $data) && trim((string)$data['label']) !== '') {
+                $fields[] = 'label = :label';
+                $params[':label'] = trim((string)$data['label']);
+            }
+            if (array_key_exists('days', $data)) {
+                $days = (int)$data['days'];
+                if ($days < 1) { http_response_code(422); echo json_encode(['error' => 'days must be >= 1']); return; }
+                $fields[] = 'days = :days';
+                $params[':days'] = $days;
+            }
+            if (array_key_exists('amount_usd', $data)) {
+                $amt = (float)$data['amount_usd'];
+                if ($amt < 0) { http_response_code(422); echo json_encode(['error' => 'amount_usd must be >= 0']); return; }
+                $fields[] = 'amount_usd = :amount_usd';
+                $params[':amount_usd'] = $amt;
+            }
+            if (array_key_exists('ngn_rate', $data)) {
+                $rate = (int)$data['ngn_rate'];
+                if ($rate < 1) { http_response_code(422); echo json_encode(['error' => 'ngn_rate must be >= 1']); return; }
+                $fields[] = 'ngn_rate = :ngn_rate';
+                $params[':ngn_rate'] = $rate;
+            }
+            if (array_key_exists('description', $data)) {
+                $fields[] = 'description = :description';
+                $params[':description'] = (string)$data['description'];
+            }
+            if (array_key_exists('payment_link', $data)) {
+                $link = trim((string)$data['payment_link']);
+                // Accept empty string (clear the link) or a valid URL
+                if ($link !== '' && !filter_var($link, FILTER_VALIDATE_URL)) {
+                    http_response_code(422);
+                    echo json_encode(['error' => 'payment_link must be a valid URL or empty']);
+                    return;
+                }
+                $fields[] = 'payment_link = :payment_link';
+                $params[':payment_link'] = $link === '' ? null : $link;
+            }
+            if (array_key_exists('is_active', $data)) {
+                $fields[] = 'is_active = :is_active';
+                $params[':is_active'] = $data['is_active'] ? 1 : 0;
+            }
+
+            if (empty($fields)) {
+                echo json_encode(['message' => 'Nothing to update']);
+                return;
+            }
+
+            $fields[] = "updated_at = datetime('now')";
+            $db->prepare('UPDATE plan_settings SET ' . implode(', ', $fields) . ' WHERE plan_key = :key')
+               ->execute($params);
+
+            // Return the updated row so the frontend can refresh immediately
+            $row = $db->prepare(
+                'SELECT id, plan_key, label, days, amount_usd, ngn_rate, description, payment_link, is_active FROM plan_settings WHERE plan_key = :key'
+            );
+            $row->execute([':key' => $key]);
+
+            echo json_encode(['message' => 'Plan updated', 'plan' => $row->fetch()]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to update plan: ' . $e->getMessage()]);
+        }
+    }
 }
