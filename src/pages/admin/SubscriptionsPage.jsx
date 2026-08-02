@@ -4,6 +4,7 @@ import {
   Loader2, Check, X, Timer, Infinity, Bell, BellOff,
 } from 'lucide-react';
 import { api } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 const PLAN_DAYS = { monthly: 30, quarterly: 90, yearly: 365 };
 
@@ -13,6 +14,7 @@ function GrantModal({ user, onGrant, onCancel }) {
   const [days, setDays]         = useState(30);
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
+  const { success, error: toastError } = useToast();
 
   if (!user) return null;
 
@@ -24,6 +26,7 @@ function GrantModal({ user, onGrant, onCancel }) {
     setError('');
     try {
       await api.admin.users.subscriptions.grant(user.id, { plan_type: planType, days: parseInt(days, 10) });
+      success(`${days}-day ${planType} subscription granted to ${user.name}`);
       onGrant();
     } catch (err) {
       setError(err.message);
@@ -82,6 +85,7 @@ function OverrideDaysEditor({ user, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
   const [error, setError]   = useState('');
+  const { success, error: toastError } = useToast();
 
   // Sync the input to what's stored whenever the user row updates
   useEffect(() => {
@@ -102,11 +106,12 @@ function OverrideDaysEditor({ user, onSaved }) {
     setError('');
     try {
       await api.admin.users.setOverrideDays(user.id, numDays);
+      success(`Countdown set to ${numDays} day${numDays !== 1 ? 's' : ''} for ${user.name}`);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       onSaved();
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setSaving(false);
     }
@@ -117,12 +122,13 @@ function OverrideDaysEditor({ user, onSaved }) {
     setError('');
     try {
       await api.admin.users.setOverrideDays(user.id, 0);
+      success(`Countdown cleared for ${user.name} — set to unlimited`);
       setDays('');
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       onSaved();
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setSaving(false);
     }
@@ -193,18 +199,21 @@ function StatusBadge({ status }) {
 // subscription_override=0 → modal is SHOWN (user must subscribe)
 function ModalToggle({ user, onToggled }) {
   const [toggling, setToggling] = useState(false);
-  const [error, setError]       = useState('');
+  const { success, error: toastError } = useToast();
 
   const isHidden = !!user.subscription_override; // override=1 means modal is off
 
   const handleToggle = async () => {
     setToggling(true);
-    setError('');
     try {
       await api.admin.users.update(user.id, { subscription_override: !isHidden });
+      success(isHidden
+        ? `Subscribe modal enabled for ${user.name}`
+        : `Subscribe modal hidden for ${user.name}`
+      );
       onToggled();
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setToggling(false);
     }
@@ -244,6 +253,7 @@ function UserSubRow({ user, onRefresh }) {
   const [grantTarget, setGrantTarget] = useState(null);
   const [revoking, setRevoking]       = useState(null);
   const [error, setError]             = useState('');
+  const { success, error: toastError } = useToast();
 
   const loadSubs = useCallback(async () => {
     setSubsLoading(true);
@@ -268,10 +278,11 @@ function UserSubRow({ user, onRefresh }) {
     setRevoking(subId);
     try {
       await api.admin.subscriptions.revoke(subId);
+      success('Subscription cancelled');
       loadSubs();
       onRefresh();
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setRevoking(null);
     }

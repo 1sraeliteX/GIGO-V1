@@ -3,6 +3,7 @@ import { Settings, Moon, Sun, User, Filter, X, Clock, ShieldCheck, LogOut } from
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { INSTRUMENTS_BY_CATEGORY, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
@@ -23,6 +24,7 @@ import SubscribeModal from '../components/SubscribeModal';
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
   const { currency, formatMoney, setCurrencyCode } = useCurrency();
+  const { toast, success, error: toastError } = useToast();
   const navigate = useNavigate();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -96,6 +98,7 @@ export default function Dashboard() {
       await loadAccounts();
       setSelectedAccountId(data.id);
       localStorage.setItem('onboarding_complete', 'true');
+      success('Account created! Welcome to Wealthalliance.');
     } catch (err) {
       setCreateError(err.message || 'Failed to create account. Please try again.');
     } finally {
@@ -171,8 +174,10 @@ export default function Dashboard() {
   const handleSave = async (payload) => {
     if (editTrade) {
       await api.trades.update(editTrade.id, payload);
+      success('Trade updated successfully');
     } else {
       await api.trades.create(payload);
+      success('Trade saved successfully');
     }
     setEditTrade(null);
     setStatsKey(k => k + 1);
@@ -187,6 +192,7 @@ export default function Dashboard() {
 
   const handleDelete = async (id) => {
     await api.trades.delete(id);
+    success('Trade deleted');
     setStatsKey(k => k + 1);
     await fetchTrades();
   };
@@ -256,7 +262,7 @@ export default function Dashboard() {
         <header className="border-b border-neutral-800">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-6 min-w-0">
-              <h1 className="text-base sm:text-xl font-bold text-white shrink-0">GIGO</h1>
+              <h1 className="text-base sm:text-xl font-bold text-white shrink-0">Wealthalliance</h1>
               <div className="min-w-0 max-w-[140px] sm:max-w-none">
                 <AccountSwitcher
                   accounts={accounts}
@@ -345,7 +351,7 @@ export default function Dashboard() {
                 Logout
               </button>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to GIGO</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Wealthalliance</h2>
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
             <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
               {createError && (

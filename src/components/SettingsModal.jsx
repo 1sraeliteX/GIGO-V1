@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTradeColors } from '../context/TradeColorContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useTimezone } from '../context/TimezoneContext';
+import { useToast } from '../context/ToastContext';
 import { SESSIONS, getSessionLocalTime, TIMEZONE_OPTIONS } from '../constants/sessions';
 import CurrencyPicker from './CurrencyPicker';
 
@@ -16,6 +17,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
   const { colors, updateColors } = useTradeColors();
   const { currency, currencyCode, setCurrencyCode } = useCurrency();
   const { timezone, setTimezone } = useTimezone();
+  const { success, error: toastError } = useToast();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -71,14 +73,16 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
 
       if (editingAccount) {
         await api.accounts.update(editingAccount.id, payload);
+        success('Account updated');
       } else {
         await api.accounts.create(payload);
+        success('Account created');
       }
       resetForm();
       await loadAccounts();
       onAccountsChange?.();
     } catch (err) {
-      setError(err.message);
+      toastError(err.message);
     }
   };
 
@@ -90,11 +94,12 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
     if (!deleteConfirm) return;
     try {
       await api.accounts.delete(deleteConfirm);
+      success('Account deleted');
       setDeleteConfirm(null);
       await loadAccounts();
       onAccountsChange?.();
     } catch (err) {
-      setError(err.message);
+      toastError(err.message);
       setDeleteConfirm(null);
     }
   };

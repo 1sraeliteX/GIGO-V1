@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 // ─── Small reusable toggle ────────────────────────────────────────────────────
 function Toggle({ value, onChange, disabled }) {
@@ -186,20 +187,67 @@ function EditUserModal({ user, onSave, onCancel, currentAdminId }) {
   );
 }
 
-// ─── Sub-status badge ─────────────────────────────────────────────────────────
-function SubBadge({ user }) {
+// ─── Sub-status badge + days remaining ───────────────────────────────────────
+function SubInfo({ user }) {
+  // Case 1: Override active
   if (user.subscription_override) {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">Override</span>;
+    if (user.subscription_override_end) {
+      const daysLeft = Math.max(0, Math.round(
+        (new Date(user.subscription_override_end) - new Date()) / 86400000
+      ));
+      return (
+        <div>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
+            Override
+          </span>
+          <p className={`text-[10px] mt-0.5 font-medium ${daysLeft > 7 ? 'text-purple-400' : daysLeft > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+            {daysLeft > 0 ? `${daysLeft}d remaining` : 'Expired today'}
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
+          Override
+        </span>
+        <p className="text-[10px] text-purple-400/60 mt-0.5">Unlimited</p>
+      </div>
+    );
   }
+
+  // Case 2: Active paid subscription
   if (user.active_plan && user.sub_end_date && user.sub_end_date > new Date().toISOString()) {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">{user.active_plan}</span>;
+    const daysLeft = Math.max(0, Math.round(
+      (new Date(user.sub_end_date) - new Date()) / 86400000
+    ));
+    return (
+      <div>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 capitalize">
+          {user.active_plan}
+        </span>
+        <p className={`text-[10px] mt-0.5 font-medium ${daysLeft > 7 ? 'text-emerald-400' : daysLeft > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+          {daysLeft > 0 ? `${daysLeft}d remaining` : 'Expires today'}
+        </p>
+      </div>
+    );
   }
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-700 text-neutral-400">none</span>;
+
+  // Case 3: No subscription
+  return (
+    <div>
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-700 text-neutral-400">
+        None
+      </span>
+      <p className="text-[10px] text-neutral-600 mt-0.5">No active plan</p>
+    </div>
+  );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function UsersPage() {
   const { user: currentAdmin } = useAuth();
+  const { success, error: toastError } = useToast();
   const [users, setUsers]           = useState([]);
   const [total, setTotal]           = useState(0);
   const [page, setPage]             = useState(1);
@@ -244,15 +292,16 @@ export default function UsersPage() {
     try {
       await api.admin.users.update(user.id, { subscription_override: !user.subscription_override });
       setUsers(us => us.map(u => u.id === user.id ? { ...u, subscription_override: !u.subscription_override } : u));
+      success(`Override ${!user.subscription_override ? 'enabled' : 'disabled'} for ${user.name}`);
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setTogglingId(null);
     }
   };
 
   const handleToggleAdmin = async (user) => {
-    if (user.id === currentAdmin?.id) return; // safety
+    if (user.id === currentAdmin?.id) return;
     const confirmed = window.confirm(
       user.is_admin
         ? `Revoke admin access from ${user.name}?`
@@ -263,8 +312,9 @@ export default function UsersPage() {
     try {
       await api.admin.users.update(user.id, { is_admin: !user.is_admin });
       setUsers(us => us.map(u => u.id === user.id ? { ...u, is_admin: !u.is_admin } : u));
+      success(`Admin access ${!user.is_admin ? 'granted to' : 'revoked from'} ${user.name}`);
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setTogglingId(null);
     }
@@ -274,10 +324,11 @@ export default function UsersPage() {
     setDeleting(true);
     try {
       await api.admin.users.delete(deleteUser.id);
+      success(`${deleteUser.name} deleted`);
       setDeleteUser(null);
       load();
     } catch (e) {
-      setError(e.message);
+      toastError(e.message);
     } finally {
       setDeleting(false);
     }
@@ -359,14 +410,9 @@ export default function UsersPage() {
                       </div>
                     </td>
 
-                    {/* Sub badge */}
+                    {/* Sub info with days remaining */}
                     <td className="px-4 py-3">
-                      <SubBadge user={u} />
-                      {u.sub_end_date && !u.subscription_override && (
-                        <p className="text-[10px] text-neutral-600 mt-0.5">
-                          ends {new Date(u.sub_end_date).toLocaleDateString()}
-                        </p>
-                      )}
+                      <SubInfo user={u} />
                     </td>
 
                     {/* Override toggle */}
@@ -456,7 +502,7 @@ export default function UsersPage() {
       <EditUserModal
         user={editUser}
         currentAdminId={currentAdmin?.id}
-        onSave={() => { setEditUser(null); load(); }}
+        onSave={() => { success('User updated'); setEditUser(null); load(); }}
         onCancel={() => setEditUser(null)}
       />
 

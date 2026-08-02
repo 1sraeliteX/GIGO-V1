@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
 
 export default function Login() {
@@ -11,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { success } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,6 +22,7 @@ export default function Login() {
     try {
       const data = await api.auth.login({ email, password });
       login(data.user, data.token);
+      success(`Welcome back, ${data.user.name}!`);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -31,7 +34,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
       <div className="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-8">
-        <h1 className="text-2xl font-bold text-white mb-6">GIGO</h1>
+        <h1 className="text-2xl font-bold text-white mb-6">Wealthalliance</h1>
         <h2 className="text-lg text-neutral-400 mb-6">Sign in to your account</h2>
         {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
