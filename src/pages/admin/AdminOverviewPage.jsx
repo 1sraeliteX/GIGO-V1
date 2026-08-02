@@ -59,7 +59,7 @@ export default function AdminOverviewPage() {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard icon={Users}       label="Total Users"          value={stats?.total_users}         color="blue" />
           <StatCard icon={CreditCard}  label="Active Subscribers"   value={stats?.active_subscribers}  color="emerald" />
-          <StatCard icon={ToggleRight} label="Override Users"        value={stats?.override_users}      color="amber" />
+          <StatCard icon={ToggleRight} label="Subscribed Users"   value={stats?.override_users}      color="amber" />
           <StatCard icon={ShieldCheck} label="Admin Users"           value={stats?.admin_users}         color="purple" />
           <StatCard icon={TrendingUp}  label="Total Trades Logged"   value={stats?.total_trades}        color="rose" />
         </div>

@@ -144,17 +144,6 @@ function EditUserModal({ user, onSave, onCancel, currentAdminId }) {
 
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm text-white">Subscription Override</p>
-              <p className="text-xs text-neutral-500">Bypasses payment gate entirely</p>
-            </div>
-            <Toggle
-              value={form.subscription_override}
-              onChange={(v) => setForm(f => ({ ...f, subscription_override: v }))}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-1">
-            <div>
               <p className="text-sm text-white">Admin Access</p>
               <p className="text-xs text-neutral-500">Grants full admin panel access</p>
             </div>
@@ -198,7 +187,7 @@ function SubInfo({ user }) {
       return (
         <div>
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
-            Override
+            Subscribed
           </span>
           <p className={`text-[10px] mt-0.5 font-medium ${daysLeft > 7 ? 'text-purple-400' : daysLeft > 0 ? 'text-amber-400' : 'text-red-400'}`}>
             {daysLeft > 0 ? `${daysLeft}d remaining` : 'Expired today'}
@@ -209,7 +198,7 @@ function SubInfo({ user }) {
     return (
       <div>
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
-          Override
+          Subscribed
         </span>
         <p className="text-[10px] text-purple-400/60 mt-0.5">Unlimited</p>
       </div>
@@ -287,19 +276,6 @@ export default function UsersPage() {
     }, 400);
   };
 
-  const handleToggleOverride = async (user) => {
-    setTogglingId(user.id);
-    try {
-      await api.admin.users.update(user.id, { subscription_override: !user.subscription_override });
-      setUsers(us => us.map(u => u.id === user.id ? { ...u, subscription_override: !u.subscription_override } : u));
-      success(`Override ${!user.subscription_override ? 'enabled' : 'disabled'} for ${user.name}`);
-    } catch (e) {
-      toastError(e.message);
-    } finally {
-      setTogglingId(null);
-    }
-  };
-
   const handleToggleAdmin = async (user) => {
     if (user.id === currentAdmin?.id) return;
     const confirmed = window.confirm(
@@ -367,7 +343,6 @@ export default function UsersPage() {
               <tr className="border-b border-neutral-800">
                 <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">User</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Subscription</th>
-                <th className="text-center px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Override</th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Admin</th>
                 <th className="text-center px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Max Trades</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Joined</th>
@@ -378,7 +353,7 @@ export default function UsersPage() {
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i}>
-                    {[...Array(7)].map((_, j) => (
+                    {[...Array(6)].map((_, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-4 bg-neutral-800 rounded animate-pulse" />
                       </td>
@@ -387,7 +362,7 @@ export default function UsersPage() {
                 ))
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-neutral-600 text-sm">
+                  <td colSpan={6} className="px-4 py-10 text-center text-neutral-600 text-sm">
                     No users found.
                   </td>
                 </tr>
@@ -413,15 +388,6 @@ export default function UsersPage() {
                     {/* Sub info with days remaining */}
                     <td className="px-4 py-3">
                       <SubInfo user={u} />
-                    </td>
-
-                    {/* Override toggle */}
-                    <td className="px-4 py-3 text-center">
-                      <Toggle
-                        value={!!u.subscription_override}
-                        onChange={() => handleToggleOverride(u)}
-                        disabled={togglingId === u.id}
-                      />
                     </td>
 
                     {/* Admin toggle */}

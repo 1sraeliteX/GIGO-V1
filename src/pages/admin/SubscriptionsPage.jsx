@@ -132,7 +132,7 @@ function OverrideDaysEditor({ user, onSaved }) {
   };
 
   if (!user.subscription_override) return (
-    <span className="text-xs text-neutral-600 italic">Enable override first</span>
+    <span className="text-xs text-neutral-600 italic">Enable subscription first</span>
   );
 
   return (
@@ -205,7 +205,7 @@ function ModalToggle({ user, onToggled }) {
       await api.admin.users.update(user.id, { subscription_override: !isHidden });
       success(isHidden
         ? `Subscribe modal enabled for ${user.name}`
-        : `Subscribe modal hidden for ${user.name}`
+        : `Subscription granted — subscribe modal hidden for ${user.name}`
       );
       onToggled();
     } catch (e) {
@@ -288,10 +288,10 @@ function UserSubRow({ user, onRefresh }) {
   if (user.subscription_override) {
     if (user.subscription_override_end) {
       const daysLeft = Math.max(0, Math.round((new Date(user.subscription_override_end) - new Date()) / 86400000));
-      statusLabel = `Override · ${daysLeft}d left`;
+      statusLabel = `Subscribed · ${daysLeft}d left`;
       statusClass = daysLeft > 0 ? 'text-purple-400' : 'text-amber-400';
     } else {
-      statusLabel = 'Override · unlimited';
+      statusLabel = 'Subscribed · unlimited';
       statusClass = 'text-purple-400';
     }
   } else if (user.active_plan && user.sub_end_date > new Date().toISOString()) {
@@ -425,7 +425,7 @@ export default function SubscriptionsPage() {
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white mb-1">Subscriptions</h1>
         <p className="text-sm text-neutral-500">
-          Manage subscriptions for all {total} users. Set override countdowns or grant Paystack-free access.
+          Manage subscriptions for all {total} users. Set subscription countdowns or grant Paystack-free access.
         </p>
       </div>
 
@@ -444,7 +444,7 @@ export default function SubscriptionsPage() {
                 <span className="block text-[10px] normal-case font-normal text-neutral-600 mt-0.5">Show / hide for this user</span>
               </th>
               <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                Override Countdown
+                Subscription Countdown
                 <span className="block text-[10px] normal-case font-normal text-neutral-600 mt-0.5">Days shown in user dashboard</span>
               </th>
               <th className="text-right px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">Actions</th>
