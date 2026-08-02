@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Edit2, Trash2, User, Briefcase, Hash, Palette, DollarSign } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, User, Briefcase, Hash, Palette, DollarSign, Globe } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useTradeColors } from '../context/TradeColorContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { CURRENCIES } from '../constants/currencies';
+import { useTimezone } from '../context/TimezoneContext';
+import { SESSIONS, getSessionLocalTime, TIMEZONE_OPTIONS } from '../constants/sessions';
+import CurrencyPicker from './CurrencyPicker';
 
 const WIN_PRESETS = ['#10b981', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'];
 const LOSS_PRESETS = ['#ef4444', '#f97316', '#e11d48', '#ec4899', '#a855f7', '#64748b'];
@@ -13,6 +15,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
   const { user, updateUser } = useAuth();
   const { colors, updateColors } = useTradeColors();
   const { currency, currencyCode, setCurrencyCode } = useCurrency();
+  const { timezone, setTimezone } = useTimezone();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -225,17 +228,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(a)}
-                      className="p-2 text-neutral-500 hover:text-white transition-colors rounded-lg hover:bg-neutral-700">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteAccount(a.id)}
-                      className="p-2 text-neutral-500 hover:text-red-400 transition-colors rounded-lg hover:bg-neutral-700">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="flex gap-0.5 sm:hidden">
+                  <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity sm:flex">
                     <button onClick={() => startEdit(a)}
                       className="p-2 text-neutral-500 hover:text-white transition-colors rounded-lg hover:bg-neutral-700">
                       <Edit2 className="w-3.5 h-3.5" />
@@ -318,20 +311,60 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
               <h3 className="text-sm font-semibold text-white">Currency</h3>
             </div>
             <div className="bg-neutral-800/50 rounded-xl border border-neutral-700/50 p-4">
-              <select
+              <CurrencyPicker
                 value={currencyCode}
-                onChange={(e) => setCurrencyCode(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.symbol} — {c.name} ({c.code})
-                  </option>
-                ))}
-              </select>
+                onChange={setCurrencyCode}
+              />
               <p className="text-[10px] text-neutral-500 mt-2">
                 Preview: {currency.symbol}1,234.56
               </p>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Globe className="w-4 h-4 text-emerald-400" />
+              <h3 className="text-sm font-semibold text-white">Timezone</h3>
+            </div>
+            <div className="bg-neutral-800/50 rounded-xl border border-neutral-700/50 p-4 space-y-4">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">Your local timezone</label>
+                <select
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                >
+                  {Array.from(new Set(TIMEZONE_OPTIONS.map((t) => t.group))).map((group) => (
+                    <optgroup key={group} label={group}>
+                      {TIMEZONE_OPTIONS.filter((t) => t.group === group).map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <p className="text-[10px] text-neutral-500 mt-2">
+                  Session open/close times in your trade form will reflect this timezone.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">Session hours in your timezone</label>
+                <div className="space-y-2">
+                  {SESSIONS.map((s) => (
+                    <div key={s.key} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: s.color }}
+                        />
+                        <span className="text-neutral-300">{s.emoji} {s.label}</span>
+                      </span>
+                      <span className="text-neutral-500 font-mono">
+                        {getSessionLocalTime(s.key, timezone)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

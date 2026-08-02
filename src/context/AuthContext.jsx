@@ -23,16 +23,31 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (token) {
       fetchSubscription();
+      // Poll every 30 seconds so admin-side changes (override toggle, granted
+      // subscriptions) propagate to the user without requiring a re-login.
+      const interval = setInterval(fetchSubscription, 30_000);
+      return () => clearInterval(interval);
     }
   }, [token]);
 
   const fetchSubscription = async () => {
+    if (!localStorage.getItem('token')) return;
     setSubLoading(true);
     try {
       const data = await api.subscribe.status();
       setSubscription(data);
-    } catch {
-      setSubscription({ subscribed: false, days_remaining: 0 });
+    } catch (err) {
+      // 401 = token expired or invalid — log the user out cleanly
+      if (err.message?.toLowerCase().includes('401') || err.message?.toLowerCase().includes('authentication') || err.message?.toLowerCase().includes('invalid or expired')) {
+        logout();
+        return;
+      }
+      // Network / server error — don't reset subscription state so overridden
+      // users aren't wrongly blocked if the backend has a momentary hiccup.
+      // Only reset if we had no prior subscription info.
+      setSubscription(prev =>
+        prev.subscribed ? prev : { subscribed: false, days_remaining: 0 }
+      );
     } finally {
       setSubLoading(false);
     }

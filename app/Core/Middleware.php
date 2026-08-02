@@ -26,4 +26,21 @@ class Middleware
 
         return $payload;
     }
+
+    /**
+     * Authenticate the request AND assert the caller is an admin.
+     * Returns the JWT payload on success; sends 401/403 and exits otherwise.
+     */
+    public static function authorizeAdmin(): array
+    {
+        $payload = self::authenticate();
+
+        if (empty($payload['is_admin'])) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Admin access required']);
+            exit;
+        }
+
+        return $payload;
+    }
 }

@@ -41,13 +41,24 @@ class Trade
         return (int) ($stmt->fetch()['cnt'] ?? 0);
     }
 
+    // Count trades for a specific account on a specific date — used for per-account daily limit enforcement.
+    public static function countByUserDateAndAccount(int $userId, string $date, int $accountId): int
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare(
+            'SELECT COUNT(*) as cnt FROM trades WHERE user_id = :user_id AND trade_date = :date AND account_id = :account_id'
+        );
+        $stmt->execute([':user_id' => $userId, ':date' => $date, ':account_id' => $accountId]);
+        return (int) ($stmt->fetch()['cnt'] ?? 0);
+    }
+
     public static function create(int $userId, array $data): int
     {
         $now = date('Y-m-d H:i:s');
         $db = Database::getInstance();
         $stmt = $db->prepare(
-            'INSERT INTO trades (user_id, trade_date, market_type, pair, lot_size, risk_type, risk_value, result, pnl_amount, risk_reward, target_amount, notes, account_id, created_at, updated_at)
-             VALUES (:user_id, :trade_date, :market_type, :pair, :lot_size, :risk_type, :risk_value, :result, :pnl_amount, :risk_reward, :target_amount, :notes, :account_id, :now, :now)'
+            'INSERT INTO trades (user_id, trade_date, market_type, pair, lot_size, risk_type, risk_value, result, pnl_amount, risk_reward, target_amount, notes, account_id, session, created_at, updated_at)
+             VALUES (:user_id, :trade_date, :market_type, :pair, :lot_size, :risk_type, :risk_value, :result, :pnl_amount, :risk_reward, :target_amount, :notes, :account_id, :session, :now, :now)'
         );
         $stmt->execute([
             ':user_id' => $userId,
@@ -63,6 +74,7 @@ class Trade
             ':target_amount' => $data['target_amount'] ?? null,
             ':notes' => $data['notes'] ?? null,
             ':account_id' => $data['account_id'] ?? null,
+            ':session' => $data['session'] ?? null,
             ':now' => $now,
         ]);
         return (int) $db->lastInsertId();
@@ -75,7 +87,8 @@ class Trade
         $stmt = $db->prepare(
             'UPDATE trades SET trade_date = :trade_date, market_type = :market_type, pair = :pair, lot_size = :lot_size,
              risk_type = :risk_type, risk_value = :risk_value, result = :result, pnl_amount = :pnl_amount,
-             risk_reward = :risk_reward, target_amount = :target_amount, notes = :notes, account_id = :account_id, updated_at = :now
+             risk_reward = :risk_reward, target_amount = :target_amount, notes = :notes, account_id = :account_id,
+             session = :session, updated_at = :now
              WHERE id = :id'
         );
         $stmt->execute([
@@ -91,6 +104,7 @@ class Trade
             ':target_amount' => $data['target_amount'] ?? null,
             ':notes' => $data['notes'] ?? null,
             ':account_id' => $data['account_id'] ?? null,
+            ':session' => $data['session'] ?? null,
             ':id' => $id,
             ':now' => $now,
         ]);

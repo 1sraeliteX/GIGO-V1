@@ -45,18 +45,26 @@ class AuthController
 
             $config = require __DIR__ . '/../../config/config.php';
             $token = JWT::encode([
-                'sub' => $userId,
-                'email' => $data['email'],
-                'name' => $data['name'],
-                'exp' => time() + $config['jwt']['expiry'],
-                'iss' => $config['jwt']['issuer'],
+                'sub'      => $userId,
+                'email'    => $data['email'],
+                'name'     => $data['name'],
+                'is_admin' => false,
+                'exp'      => time() + $config['jwt']['expiry'],
+                'iss'      => $config['jwt']['issuer'],
             ], $config['jwt']['secret']);
 
             http_response_code(201);
             echo json_encode([
                 'message' => 'Registration successful',
-                'token' => $token,
-                'user' => ['id' => $userId, 'name' => $data['name'], 'email' => $data['email'], 'max_trades_per_day' => null],
+                'token'   => $token,
+                'user'    => [
+                    'id'                    => $userId,
+                    'name'                  => $data['name'],
+                    'email'                 => $data['email'],
+                    'max_trades_per_day'    => null,
+                    'is_admin'              => false,
+                    'subscription_override' => true,
+                ],
             ]);
         } catch (\Throwable $e) {
             http_response_code(500);
@@ -85,17 +93,25 @@ class AuthController
 
             $config = require __DIR__ . '/../../config/config.php';
             $token = JWT::encode([
-                'sub' => $user['id'],
-                'email' => $user['email'],
-                'name' => $user['name'],
-                'exp' => time() + $config['jwt']['expiry'],
-                'iss' => $config['jwt']['issuer'],
+                'sub'      => $user['id'],
+                'email'    => $user['email'],
+                'name'     => $user['name'],
+                'is_admin' => (bool) ($user['is_admin'] ?? false),
+                'exp'      => time() + $config['jwt']['expiry'],
+                'iss'      => $config['jwt']['issuer'],
             ], $config['jwt']['secret']);
 
             echo json_encode([
                 'message' => 'Login successful',
-                'token' => $token,
-                'user' => ['id' => $user['id'], 'name' => $user['name'], 'email' => $user['email'], 'max_trades_per_day' => $user['max_trades_per_day'] ?? null],
+                'token'   => $token,
+                'user'    => [
+                    'id'                    => $user['id'],
+                    'name'                  => $user['name'],
+                    'email'                 => $user['email'],
+                    'max_trades_per_day'    => $user['max_trades_per_day'] ?? null,
+                    'is_admin'              => (bool) ($user['is_admin'] ?? false),
+                    'subscription_override' => (bool) ($user['subscription_override'] ?? false),
+                ],
             ]);
         } catch (\Throwable $e) {
             http_response_code(500);

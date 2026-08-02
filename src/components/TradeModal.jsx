@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ALL_INSTRUMENTS, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
+import { SESSIONS, getSessionLocalTime, getActiveSessions } from '../constants/sessions';
 import { useCurrency } from '../context/CurrencyContext';
+import { useTimezone } from '../context/TimezoneContext';
 
 export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate, accounts, selectedAccountId }) {
   const { currency, formatMoney } = useCurrency();
+  const { timezone } = useTimezone();
   const [form, setForm] = useState({
     trade_date: '',
     account_id: '',
@@ -16,6 +19,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
     pnl_amount: '',
     target_amount: '',
     risk_reward: '',
+    session: '',
     notes: '',
   });
   const [saving, setSaving] = useState(false);
@@ -39,9 +43,12 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
         pnl_amount: Math.abs(trade.pnl_amount),
         target_amount: trade.target_amount || '',
         risk_reward: trade.risk_reward || '',
+        session: trade.session || '',
         notes: trade.notes || '',
       });
     } else {
+      // Suggest the currently active session based on user timezone
+      const active = getActiveSessions(timezone);
       setForm({
         trade_date: prefillDate || new Date().toISOString().split('T')[0],
         account_id: selectedAccountId || '',
@@ -54,6 +61,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
         pnl_amount: '',
         target_amount: '',
         risk_reward: '',
+        session: active.length > 0 ? active[0] : '',
         notes: '',
       });
     }
@@ -229,7 +237,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
               type="text"
               value={form.pair}
               onChange={handleSearchInput}
-              onFocus={() => { setSearchOpen(true); setSearchQuery(form.pair); }}
+              onFocus={() => { setSearchOpen(true); setSearchQuery(''); }}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search or type a symbol..."
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 placeholder:text-neutral-600"
@@ -352,6 +360,38 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
             <label className="block text-sm text-neutral-400 mb-1">Trade Outcome ({currency.symbol})</label>
             <input type="text" inputMode="decimal" value={form.pnl_amount} onChange={(e) => handleChange('pnl_amount', e.target.value)} required
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+
+          <div>
+            <label className="block text-sm text-neutral-400 mb-1">Trading Session</label>
+            <div className="grid grid-cols-2 gap-2">
+              {SESSIONS.map((s) => {
+                const localTime = getSessionLocalTime(s.key, timezone);
+                const isActive = form.session === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => handleChange('session', isActive ? '' : s.key)}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                      isActive
+                        ? 'text-white border-transparent'
+                        : 'bg-neutral-800 text-neutral-400 hover:text-white border-neutral-700 hover:border-neutral-600'
+                    }`}
+                    style={isActive ? { backgroundColor: s.color + '33', borderColor: s.color, color: s.color } : {}}
+                  >
+                    <span className="text-base leading-none">{s.emoji}</span>
+                    <span className="flex flex-col items-start min-w-0">
+                      <span className="truncate">{s.label}</span>
+                      {localTime && (
+                        <span className="text-[10px] opacity-60 font-normal truncate">{localTime}</span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-neutral-600 mt-1.5">Optional — times shown in your timezone</p>
           </div>
 
           <div>

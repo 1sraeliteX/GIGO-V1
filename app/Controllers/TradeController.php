@@ -74,9 +74,16 @@ class TradeController
             $accountId = $data['account_id'] ?? null;
             if ($accountId !== null) {
                 $account = \App\Models\Account::findById((int) $accountId);
-                $maxPerDay = $account ? ($account['max_trades_per_day'] ?? null) : null;
+                // Verify account belongs to requesting user
+                if (!$account || (int) $account['user_id'] !== (int) $user['sub']) {
+                    http_response_code(403);
+                    echo json_encode(['error' => 'Account not found or does not belong to you']);
+                    return;
+                }
+                $maxPerDay = $account['max_trades_per_day'] ?? null;
                 if ($maxPerDay !== null) {
-                    $existingCount = Trade::countByUserAndDate($user['sub'], $data['trade_date']);
+                    // Count only trades for this specific account on this date
+                    $existingCount = Trade::countByUserDateAndAccount($user['sub'], $data['trade_date'], (int) $accountId);
                     if ($existingCount >= (int) $maxPerDay) {
                         http_response_code(422);
                         echo json_encode(['error' => "Daily trade limit reached ({$existingCount}/{$maxPerDay}). Adjust limit in account settings to add more."]);
@@ -171,8 +178,8 @@ class TradeController
         $errors = [];
 
         if (empty($data['trade_date'])) $errors[] = 'trade_date is required';
-        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities'])) {
-            $errors[] = 'market_type must be forex, crypto, or commodities';
+        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities', 'indices', 'stocks'])) {
+            $errors[] = 'market_type must be forex, crypto, commodities, indices, or stocks';
         }
         if (empty($data['pair'])) $errors[] = 'pair is required';
         if (!isset($data['lot_size']) || (float)$data['lot_size'] <= 0) $errors[] = 'lot_size must be positive';
@@ -186,6 +193,10 @@ class TradeController
         if (!isset($data['pnl_amount'])) $errors[] = 'pnl_amount is required';
         if (isset($data['target_amount']) && $data['target_amount'] !== null && (float)$data['target_amount'] < 0) {
             $errors[] = 'target_amount must be non-negative';
+        }
+        if (isset($data['session']) && $data['session'] !== null && $data['session'] !== '' &&
+            !in_array($data['session'], ['london', 'new_york', 'asia', 'london_ny_overlap'])) {
+            $errors[] = 'session must be london, new_york, asia, or london_ny_overlap';
         }
 
         return $errors;

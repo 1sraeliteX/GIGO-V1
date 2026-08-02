@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Moon, Sun, User, Filter, X, Clock } from 'lucide-react';
+import { Settings, Moon, Sun, User, Filter, X, Clock, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { CURRENCIES } from '../constants/currencies';
 import { useCurrency } from '../context/CurrencyContext';
 import { api } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 import { INSTRUMENTS_BY_CATEGORY, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
 import StatCards from '../components/StatCards';
 import CalendarGrid from '../components/CalendarGrid';
@@ -14,6 +14,8 @@ import TradeModal from '../components/TradeModal';
 import DayDetail from '../components/DayDetail';
 import TradeList from '../components/TradeList';
 import SettingsModal from '../components/SettingsModal';
+import SessionStats from '../components/SessionStats';
+import CurrencyPicker from '../components/CurrencyPicker';
 import AccountSwitcher from '../components/AccountSwitcher';
 import OnboardingOverlay from '../components/OnboardingOverlay';
 import SubscribeModal from '../components/SubscribeModal';
@@ -21,6 +23,7 @@ import SubscribeModal from '../components/SubscribeModal';
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
   const { currency, formatMoney, setCurrencyCode } = useCurrency();
+  const navigate = useNavigate();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -40,6 +43,7 @@ export default function Dashboard() {
   const [onboardingCapital, setOnboardingCapital] = useState('');
   const [onboardingCurrency, setOnboardingCurrency] = useState('USD');
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
   const [statsKey, setStatsKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [symbolFilter, setSymbolFilter] = useState('');
@@ -85,13 +89,15 @@ export default function Dashboard() {
     e.preventDefault();
     if (!onboardingName.trim()) return;
     setCreating(true);
+    setCreateError('');
     try {
       setCurrencyCode(onboardingCurrency);
       const data = await api.accounts.create({ name: onboardingName.trim(), capital: parseFloat(onboardingCapital) || 0, currency: onboardingCurrency });
       await loadAccounts();
       setSelectedAccountId(data.id);
+      localStorage.setItem('onboarding_complete', 'true');
     } catch (err) {
-      console.error(err);
+      setCreateError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setCreating(false);
     }
@@ -120,16 +126,17 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // Only show onboarding tour after the user has at least one account.
+    // Brand new users (zero accounts) go through the inline setup form first.
     if (accountsLoaded && accounts.length > 0 && !localStorage.getItem('onboarding_complete')) {
       setShowOnboarding(true);
     }
   }, [accountsLoaded, accounts]);
 
   useEffect(() => {
-    if (accountsLoaded && accounts.length > 0 && !subLoading && !subscription.subscribed) {
-      setShowSubscribeModal(true);
-    }
-    if (subscription.subscribed && showSubscribeModal) {
+    // Subscribe modal is fully disabled — controlled exclusively from the admin panel.
+    // Nothing here triggers it automatically.
+    if ((subscription.subscribed || subscription.override) && showSubscribeModal) {
       setShowSubscribeModal(false);
     }
   }, [accountsLoaded, accounts, subLoading, subscription]);
@@ -260,15 +267,19 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-1">
-              {!subLoading && subscription.subscribed && (
+              {!subLoading && subscription.subscribed && subscription.days_remaining !== null && (
                 <button
                   onClick={() => setShowSubscribeModal(true)}
                   className="flex items-center gap-1 text-[10px] sm:text-xs text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg px-2 sm:px-3 py-1.5 transition-colors"
                   title="Upgrade subscription"
                 >
                   <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  <span className="hidden sm:inline">{subscription.days_remaining}d left</span>
-                  <span className="sm:hidden">{subscription.days_remaining}d</span>
+                  <span className="hidden sm:inline">
+                    {subscription.days_remaining === null ? '∞' : `${subscription.days_remaining}d left`}
+                  </span>
+                  <span className="sm:hidden">
+                    {subscription.days_remaining === null ? '∞' : `${subscription.days_remaining}d`}
+                  </span>
                 </button>
               )}
               <button onClick={toggleTheme}
@@ -300,6 +311,15 @@ export default function Dashboard() {
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Trades
                     </button>
+                    {user?.is_admin && (
+                      <button
+                        onClick={() => { navigate('/admin'); setShowMenu(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-purple-400 hover:text-purple-300 hover:bg-neutral-700/50 transition-colors flex items-center gap-2"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Admin Panel
+                      </button>
+                    )}
                     <div className="border-t border-neutral-700" />
                     <button onClick={logout}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-neutral-700/50 transition-colors">
@@ -316,9 +336,23 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 pb-16 sm:pb-8">
         {!accountsLoaded ? null : accounts.length === 0 ? (
           <div className="max-w-md mx-auto mt-16 text-center">
+            <div className="flex items-center justify-end mb-4">
+              <button
+                onClick={logout}
+                className="text-xs text-neutral-500 hover:text-red-400 transition-colors flex items-center gap-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Logout
+              </button>
+            </div>
             <h2 className="text-2xl font-bold text-white mb-2">Welcome to GIGO</h2>
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
             <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
+              {createError && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">
+                  {createError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm text-neutral-400 mb-1">Account Name</label>
                 <input type="text" value={onboardingName} onChange={(e) => setOnboardingName(e.target.value)}
@@ -328,12 +362,11 @@ export default function Dashboard() {
               <div>
                 <label className="block text-sm text-neutral-400 mb-1">Capital Amount</label>
                 <div className="flex gap-2">
-                  <select value={onboardingCurrency} onChange={(e) => setOnboardingCurrency(e.target.value)}
-                    className="bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 w-20 shrink-0">
-                    {CURRENCIES.map(c => (
-                      <option key={c.code} value={c.code}>{c.code}</option>
-                    ))}
-                  </select>
+                  <CurrencyPicker
+                    value={onboardingCurrency}
+                    onChange={setOnboardingCurrency}
+                    className="w-32 shrink-0"
+                  />
                   <input type="number" step="0.01" min="0" value={onboardingCapital} onChange={(e) => setOnboardingCapital(e.target.value)}
                     placeholder="0.00"
                     className="flex-1 min-w-0 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" required />
@@ -355,6 +388,8 @@ export default function Dashboard() {
             <StatCards month={monthStr} accountId={selectedAccountId} accountCapital={accountCapital} refreshKey={statsKey} />
 
             <WeeklyStats trades={filteredTrades} accountCapital={accountCapital} accountId={selectedAccountId} year={year} month={month} />
+
+            <SessionStats trades={filteredTrades} />
 
             <div className="flex items-center gap-3 mb-4">
               {accountCapital > 0 && (
@@ -467,7 +502,7 @@ export default function Dashboard() {
           <SubscribeModal
             isOpen={showSubscribeModal}
             onClose={() => setShowSubscribeModal(false)}
-            blocking={!subLoading && !subscription.subscribed}
+            blocking={!subLoading && !subscription.subscribed && !subscription.override}
           />
         </>
       )}

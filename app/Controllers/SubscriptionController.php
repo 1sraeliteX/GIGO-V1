@@ -41,6 +41,32 @@ class SubscriptionController
             $user = Middleware::authenticate();
             $db = Database::getInstance();
 
+            // Check subscription_override — if set, user is treated as permanently subscribed
+            // regardless of any Paystack subscription record.
+            $userRecord = \App\Models\User::findById((int) $user['sub']);
+            if ($userRecord && !empty($userRecord['subscription_override'])) {
+                // If admin set a specific end date, calculate real days remaining
+                // If no end date is set (unlimited), return null days_remaining so
+                // the frontend can show "∞" instead of a bogus number.
+                $daysRemaining = null;
+                $endDate       = null;
+                if (!empty($userRecord['subscription_override_end'])) {
+                    $end  = new \DateTime($userRecord['subscription_override_end']);
+                    $now  = new \DateTime();
+                    $diff = (int) $now->diff($end)->format('%r%a');
+                    $daysRemaining = max(0, $diff);
+                    $endDate       = $userRecord['subscription_override_end'];
+                }
+                echo json_encode([
+                    'subscribed'     => true,
+                    'days_remaining' => $daysRemaining,
+                    'plan_type'      => 'override',
+                    'end_date'       => $endDate,
+                    'override'       => true,
+                ]);
+                return;
+            }
+
             $stmt = $db->prepare(
                 "SELECT id, plan_type, start_date, end_date, status, created_at
                  FROM subscriptions
@@ -170,9 +196,11 @@ class SubscriptionController
             }
 
             $meta = $tx['metadata'] ?? [];
-            $planType = $meta['plan_type'] ?? 'monthly';
+            $planType  = $meta['plan_type'] ?? 'monthly';
             $daysToAdd = (int) ($meta['days'] ?? 30);
-            $userId = $meta['user_id'] ?? $user['sub'];
+            // Always use the authenticated user's ID — never trust metadata from Paystack
+            // as it could be tampered with to activate another user's subscription.
+            $userId = $user['sub'];
 
             $db = Database::getInstance();
 

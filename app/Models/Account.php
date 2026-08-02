@@ -9,7 +9,7 @@ class Account
     public static function findByUserId(int $userId): array
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare('SELECT * FROM accounts WHERE user_id = :user_id ORDER BY created_at ASC');
+        $stmt = $db->prepare('SELECT id, user_id, name, capital, max_trades_per_day, created_at FROM accounts WHERE user_id = :user_id ORDER BY created_at ASC');
         $stmt->execute([':user_id' => $userId]);
         return $stmt->fetchAll();
     }
@@ -17,7 +17,7 @@ class Account
     public static function findById(int $id): ?array
     {
         $db = Database::getInstance();
-        $stmt = $db->prepare('SELECT * FROM accounts WHERE id = :id LIMIT 1');
+        $stmt = $db->prepare('SELECT id, user_id, name, capital, max_trades_per_day, created_at FROM accounts WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $id]);
         $account = $stmt->fetch();
         return $account ?: null;

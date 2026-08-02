@@ -63,4 +63,26 @@ export const api = {
     initialize: (body) => request('/subscribe/initialize', { method: 'POST', body: JSON.stringify(body) }),
     verify: (reference) => request(`/subscribe/verify?reference=${reference}`),
   },
+  admin: {
+    stats: () => request('/admin/stats'),
+    users: {
+      list: (params = {}) => {
+        const qs = new URLSearchParams(params).toString();
+        return request(`/admin/users${qs ? '?' + qs : ''}`);
+      },
+      update: (id, body) => request(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+      delete: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
+      setOverrideDays: (id, days) => request(`/admin/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ subscription_override_days: days }),
+      }),
+      subscriptions: {
+        list: (userId) => request(`/admin/users/${userId}/subscriptions`),
+        grant: (userId, body) => request(`/admin/users/${userId}/subscriptions`, { method: 'POST', body: JSON.stringify(body) }),
+      },
+    },
+    subscriptions: {
+      revoke: (id) => request(`/admin/subscriptions/${id}`, { method: 'DELETE' }),
+    },
+  },
 };

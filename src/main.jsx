@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 import { TradeColorProvider } from './context/TradeColorContext';
+import { TimezoneProvider } from './context/TimezoneContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -14,9 +15,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <CurrencyProvider>
         <TradeColorProvider>
+        <TimezoneProvider>
         <AuthProvider>
           <App />
         </AuthProvider>
+        </TimezoneProvider>
         </TradeColorProvider>
         </CurrencyProvider>
       </ThemeProvider>

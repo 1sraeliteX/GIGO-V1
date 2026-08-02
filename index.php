@@ -63,6 +63,7 @@ use App\Controllers\StatsController;
 use App\Controllers\SettingsController;
 use App\Controllers\AccountController;
 use App\Controllers\SubscriptionController;
+use App\Controllers\AdminController;
 
 $router = new Router();
 
@@ -90,5 +91,14 @@ $router->get('/api/subscribe/status', [SubscriptionController::class, 'status'])
 $router->get('/api/subscribe/plans', [SubscriptionController::class, 'plans']);
 $router->post('/api/subscribe/initialize', [SubscriptionController::class, 'initialize']);
 $router->get('/api/subscribe/verify', [SubscriptionController::class, 'verify']);
+
+// Admin routes — all protected by Middleware::authorizeAdmin()
+$router->get('/api/admin/stats',                              [AdminController::class, 'stats']);
+$router->get('/api/admin/users',                              [AdminController::class, 'listUsers']);
+$router->put('/api/admin/users/{id}',                         [AdminController::class, 'updateUser']);
+$router->delete('/api/admin/users/{id}',                      [AdminController::class, 'deleteUser']);
+$router->get('/api/admin/users/{id}/subscriptions',           [AdminController::class, 'listUserSubscriptions']);
+$router->post('/api/admin/users/{id}/subscriptions',          [AdminController::class, 'grantSubscription']);
+$router->delete('/api/admin/subscriptions/{id}',              [AdminController::class, 'revokeSubscription']);
 
 $router->dispatch(Request::method(), Request::uri());
