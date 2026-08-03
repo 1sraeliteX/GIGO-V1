@@ -35,7 +35,10 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
       <div className="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-8">
-        <h1 className="text-2xl font-bold text-white mb-6">Wealthalliance</h1>
+        <div className="flex items-center gap-3 mb-6">
+          <img src="/logo.png" alt="Wealthalliance" className="w-10 h-10 rounded-full object-cover" />
+          <h1 className="text-2xl font-bold text-white">Wealthalliance</h1>
+        </div>
         <h2 className="text-lg text-neutral-400 mb-6">Create your account</h2>
         {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">

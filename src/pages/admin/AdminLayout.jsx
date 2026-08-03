@@ -29,7 +29,7 @@ export default function AdminLayout() {
         <div className="px-5 py-4 border-b border-neutral-800">
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <img src="/logo.png" alt="Wealthalliance" className="w-6 h-6 rounded-full object-cover shrink-0" />
               <span className="text-white font-bold text-sm tracking-wide">Wealthalliance</span>
             </div>
             <button
