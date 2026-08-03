@@ -268,7 +268,7 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-6 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
-                <img src="/logo.png" alt="Wealthalliance" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shrink-0" />
+                <img src="/logo.png" alt="Wealthalliance" className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shrink-0" />
                 <h1 className="text-base sm:text-xl font-bold text-white shrink-0">Wealthalliance</h1>
               </div>
               <div className="min-w-0 max-w-[140px] sm:max-w-none">
