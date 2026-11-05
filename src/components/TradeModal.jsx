@@ -209,8 +209,8 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
 
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Market Type</label>
-            <div className="flex gap-2">
-              {['forex', 'crypto', 'commodities'].map((type) => (
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+              {['forex', 'crypto', 'commodities', 'indices'].map((type) => (
                 <button key={type} type="button" onClick={() => handleChange('market_type', type)}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
                     form.market_type === type

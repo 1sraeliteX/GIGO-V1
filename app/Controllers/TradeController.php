@@ -171,8 +171,8 @@ class TradeController
         $errors = [];
 
         if (empty($data['trade_date'])) $errors[] = 'trade_date is required';
-        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities'])) {
-            $errors[] = 'market_type must be forex, crypto, or commodities';
+        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities', 'indices'])) {
+            $errors[] = 'market_type must be forex, crypto, commodities, or indices';
         }
         if (empty($data['pair'])) $errors[] = 'pair is required';
         if (!isset($data['lot_size']) || (float)$data['lot_size'] <= 0) $errors[] = 'lot_size must be positive';

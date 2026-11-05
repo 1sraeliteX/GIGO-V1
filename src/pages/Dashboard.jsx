@@ -439,7 +439,7 @@ export default function Dashboard() {
                   <select
                     value={symbolFilter}
                     onChange={(e) => setSymbolFilter(e.target.value)}
-                    className="bg-neutral-800 border border-neutral-700 rounded-lg pl-8 pr-3 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 max-w-[220px]"
+                    className="bg-neutral-800 border border-neutral-700 rounded-lg pl-8 pr-10 py-3 text-sm text-white focus:outline-none focus:border-emerald-500 max-w-[220px]"
                   >
                   <option value="">All Symbols</option>
                   {Object.entries(INSTRUMENTS_BY_CATEGORY).map(([category, groups]) =>

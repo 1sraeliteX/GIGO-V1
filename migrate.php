@@ -14,6 +14,7 @@ require_once __DIR__ . '/app/Migrations/006_add_max_trades_per_day_to_accounts.p
 require_once __DIR__ . '/app/Migrations/007_add_trade_indexes.php';
 require_once __DIR__ . '/app/Migrations/008_create_subscriptions_table.php';
 require_once __DIR__ . '/app/Migrations/009_create_grind_settings_table.php';
+require_once __DIR__ . '/app/Migrations/010_add_indices_market_type.php';
 
 $action = $argv[1] ?? 'up';
 
@@ -28,6 +29,7 @@ if ($action === 'up') {
         'App\Migrations\AddTradeIndexes::up',
         'App\Migrations\CreateSubscriptionsTable::up',
         'App\Migrations\CreateGrindSettingsTable::up',
+        'App\Migrations\AddIndicesMarketType::up',
     ];
     foreach ($steps as $step) {
         try {
