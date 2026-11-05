@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Moon, Sun, User, Filter, X, Clock, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Settings, Moon, Sun, User, Filter, X, Clock, ChevronDown, BarChart2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { CURRENCIES } from '../constants/currencies';
@@ -20,6 +21,7 @@ import SubscribeModal from '../components/SubscribeModal';
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
   const { currency, formatMoney, setCurrencyCode } = useCurrency();
+  const navigate = useNavigate();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -320,6 +322,10 @@ export default function Dashboard() {
                     <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Trades
+                    </button>
+                    <button onClick={() => { navigate('/grind'); setShowMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors flex items-center gap-2">
+                      <BarChart2 className="w-3.5 h-3.5" /> Grind Report
                     </button>
                     <div className="border-t border-neutral-700" />
                     <button onClick={logout}

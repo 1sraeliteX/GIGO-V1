@@ -63,6 +63,7 @@ use App\Controllers\StatsController;
 use App\Controllers\SettingsController;
 use App\Controllers\AccountController;
 use App\Controllers\SubscriptionController;
+use App\Controllers\GrindController;
 
 $router = new Router();
 
@@ -90,5 +91,9 @@ $router->get('/api/subscribe/status', [SubscriptionController::class, 'status'])
 $router->get('/api/subscribe/plans', [SubscriptionController::class, 'plans']);
 $router->post('/api/subscribe/initialize', [SubscriptionController::class, 'initialize']);
 $router->get('/api/subscribe/verify', [SubscriptionController::class, 'verify']);
+
+$router->get('/api/grind/settings', [GrindController::class, 'getSettings']);
+$router->put('/api/grind/settings', [GrindController::class, 'saveSettings']);
+$router->get('/api/grind/report',   [GrindController::class, 'report']);
 
 $router->dispatch(Request::method(), Request::uri());

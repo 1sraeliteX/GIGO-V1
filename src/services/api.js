@@ -63,4 +63,14 @@ export const api = {
     initialize: (body) => request('/subscribe/initialize', { method: 'POST', body: JSON.stringify(body) }),
     verify: (reference) => request(`/subscribe/verify?reference=${reference}`),
   },
+  grind: {
+    getSettings: () => request('/grind/settings'),
+    saveSettings: (body) => request('/grind/settings', { method: 'PUT', body: JSON.stringify(body) }),
+    getReport: (params = {}) => {
+      const qs = new URLSearchParams(
+        Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))
+      ).toString();
+      return request(`/grind/report${qs ? '?' + qs : ''}`);
+    },
+  },
 };

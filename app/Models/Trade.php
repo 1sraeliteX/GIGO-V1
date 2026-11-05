@@ -135,6 +135,40 @@ class Trade
         return $stmt->fetch() ?: [];
     }
 
+    /**
+     * Fetch ALL trades for a user (optionally filtered) in ascending order.
+     * Used by GrindReportService. Optional date-range and account filters.
+     */
+    public static function findAllByUser(
+        int $userId,
+        ?int $accountId = null,
+        ?string $dateFrom = null,
+        ?string $dateTo   = null
+    ): array {
+        $db     = Database::getInstance();
+        $sql    = 'SELECT * FROM trades WHERE user_id = :user_id';
+        $params = [':user_id' => $userId];
+
+        if ($accountId !== null) {
+            $sql .= ' AND account_id = :account_id';
+            $params[':account_id'] = $accountId;
+        }
+        if ($dateFrom !== null) {
+            $sql .= ' AND trade_date >= :date_from';
+            $params[':date_from'] = $dateFrom;
+        }
+        if ($dateTo !== null) {
+            $sql .= ' AND trade_date <= :date_to';
+            $params[':date_to'] = $dateTo;
+        }
+
+        $sql .= ' ORDER BY trade_date ASC, id ASC';
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public static function findByUserAndDateRange(int $userId, string $start, string $end, ?int $accountId = null): array
     {
         $db = Database::getInstance();
