@@ -51,7 +51,7 @@ function PlanCard({ plan: initialPlan, onSaved }) {
   const ngnRate   = parseInt(plan.ngn_rate, 10) || 1400;
   const days      = parseInt(plan.days, 10) || 1;
   const ngnTotal  = amountUsd * ngnRate;
-  const perDay    = amountUsd / days;
+  const perMonth  = days > 0 ? amountUsd / (days / 30) : amountUsd;
 
   return (
     <div className={`bg-neutral-900 border rounded-xl overflow-hidden ${plan.is_active ? 'border-neutral-800' : 'border-neutral-800 opacity-60'}`}>
@@ -184,7 +184,7 @@ function PlanCard({ plan: initialPlan, onSaved }) {
             <div className="text-right">
               <p className="text-lg font-bold text-white">${amountUsd.toFixed(2)}</p>
               <p className="text-xs text-neutral-400">₦{ngnTotal.toLocaleString()}</p>
-              <p className="text-[10px] text-neutral-500">${perDay.toFixed(2)}/day</p>
+              <p className="text-[11px] text-neutral-400">${perMonth.toFixed(2)}/month</p>
             </div>
           </div>
         </div>

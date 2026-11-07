@@ -33,7 +33,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4 pb-24 sm:pb-0">
       <div className="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-8">
         <div className="flex items-center gap-3 mb-6">
           <img src="/logo.png" alt="Tradora" className="w-14 h-14 rounded-full object-cover" />
@@ -71,7 +71,7 @@ export default function ForgotPassword() {
           </>
         )}
 
-        <p className="text-neutral-500 text-sm text-center mt-6">
+        <p className="text-neutral-400 text-sm text-center mt-6">
           Remembered it? <Link to="/login" className="text-emerald-400 hover:text-emerald-300">Sign in</Link>
         </p>
       </div>

@@ -58,7 +58,7 @@ export function ToastProvider({ children }) {
       <div
         aria-live="polite"
         aria-atomic="false"
-        className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 w-full max-w-sm pointer-events-none"
+        className="fixed top-4 left-4 right-4 sm:left-auto z-[9999] flex flex-col gap-2 sm:w-full sm:max-w-sm pointer-events-none"
       >
         {toasts.map((t) => {
           const Icon = ICONS[t.type] ?? Info;

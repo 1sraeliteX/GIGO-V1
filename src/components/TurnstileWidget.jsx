@@ -67,7 +67,7 @@ const TurnstileWidget = forwardRef(function TurnstileWidget({ action, onToken },
     };
   }, [action, onToken]);
 
-  return <div ref={containerRef} className="flex justify-center" />;
+  return <div ref={containerRef} className="flex justify-center min-h-[65px]" />;
 });
 
 export default TurnstileWidget;
