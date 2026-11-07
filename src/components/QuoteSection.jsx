@@ -53,7 +53,7 @@ export default function QuoteSection() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleSave}
-              className="px-4 py-1.5 text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+              className="px-4 py-1.5 text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg transition-colors"
             >
               Save
             </button>

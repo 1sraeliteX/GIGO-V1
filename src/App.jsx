@@ -13,6 +13,8 @@ import UsersPage from './pages/admin/UsersPage';
 import SubscriptionsPage from './pages/admin/SubscriptionsPage';
 import PlansPage from './pages/admin/PlansPage';
 import PaymentsPage from './pages/admin/PaymentsPage';
+import SupportPage from './pages/admin/SupportPage';
+import SupportChat from './components/SupportChat';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -33,28 +35,33 @@ function AdminRoute({ children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-      <Route path="/reset-password"  element={<PublicRoute><ResetPassword /></PublicRoute>} />
-      <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/grind-report" element={<ProtectedRoute><GrindReport /></ProtectedRoute>} />
-      <Route path="/subscribe/callback" element={<ProtectedRoute><SubscribeCallback /></ProtectedRoute>} />
+    <>
+      <Routes>
+        <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="/reset-password"  element={<PublicRoute><ResetPassword /></PublicRoute>} />
+        <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/grind-report" element={<ProtectedRoute><GrindReport /></ProtectedRoute>} />
+        <Route path="/subscribe/callback" element={<ProtectedRoute><SubscribeCallback /></ProtectedRoute>} />
 
-      {/* Admin section */}
-      <Route
-        path="/admin"
-        element={<AdminRoute><AdminLayout /></AdminRoute>}
-      >
-        <Route index          element={<AdminOverviewPage />} />
-        <Route path="users"         element={<UsersPage />} />
-        <Route path="subscriptions" element={<SubscriptionsPage />} />
-        <Route path="plans"         element={<PlansPage />} />
-        <Route path="payments"      element={<PaymentsPage />} />
-      </Route>
+        {/* Admin section */}
+        <Route
+          path="/admin"
+          element={<AdminRoute><AdminLayout /></AdminRoute>}
+        >
+          <Route index          element={<AdminOverviewPage />} />
+          <Route path="users"         element={<UsersPage />} />
+          <Route path="subscriptions" element={<SubscriptionsPage />} />
+          <Route path="plans"         element={<PlansPage />} />
+          <Route path="payments"      element={<PaymentsPage />} />
+          <Route path="support"       element={<SupportPage />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      <SupportChat />
+    </>
   );
 }

@@ -88,7 +88,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
           ) : (
             <>
               <p className="text-sm text-neutral-400">
-                {blocking ? 'Your subscription has expired. Choose a plan to regain access to your trading journal.' : 'Choose a plan to continue using TradeJournal.'}
+                {blocking ? 'Your subscription has expired. Choose a plan to regain access to your trading journal.' : 'Choose a plan to continue using Tradora.'}
               </p>
 
               <div className="space-y-3">
@@ -105,7 +105,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${
-                          selectedPlan === key ? 'bg-emerald-600 text-white' : 'bg-neutral-700 text-neutral-300'
+                          selectedPlan === key ? 'bg-emerald-600 text-[#fff]' : 'bg-neutral-700 text-neutral-300'
                         }`}>
                           {PLAN_ICONS[key]}
                         </div>
@@ -133,7 +133,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
               <button
                 onClick={handleSubscribe}
                 disabled={loading}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium transition-colors disabled:opacity-50 mt-2"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-3 font-medium transition-colors disabled:opacity-50 mt-2"
               >
                 {loading
                   ? 'Processing...'
@@ -154,7 +154,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg py-2.5 text-sm font-medium transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2.5 text-sm font-medium transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Log out

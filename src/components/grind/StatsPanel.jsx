@@ -56,7 +56,7 @@ export default function StatsPanel({ report }) {
               onKeyDown={e => e.key === 'Enter' && doLookup()}
               placeholder="e.g. 500"
               className="w-full min-w-0 bg-neutral-800 border border-neutral-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-emerald-500" />
-            <button onClick={doLookup} className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded px-2 py-1 transition-colors">Go</button>
+            <button onClick={doLookup} className="text-xs bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded px-2 py-1 transition-colors">Go</button>
           </div>
           {lookupResult && (
             lookupResult.error

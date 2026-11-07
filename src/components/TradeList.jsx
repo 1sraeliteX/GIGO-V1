@@ -55,7 +55,7 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, o
             <p className="text-neutral-500 mb-6">No trades recorded this month.</p>
             <button
               onClick={() => { onClose(); onAddTrade(); }}
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#fff] px-6 py-2.5 rounded-lg font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Your First Trade

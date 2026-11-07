@@ -197,7 +197,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                     Cancel
                   </button>
                   <button onClick={handleAddAccount}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2 text-sm font-medium transition-colors">
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2 text-sm font-medium transition-colors">
                     {editingAccount ? 'Update' : 'Add'}
                   </button>
                 </div>
@@ -393,7 +393,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 bg-red-600 hover:bg-red-500 text-white rounded-lg py-2 text-sm font-medium transition-colors"
+                  className="flex-1 bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2 text-sm font-medium transition-colors"
                 >
                   Yes
                 </button>

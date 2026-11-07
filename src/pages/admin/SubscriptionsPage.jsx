@@ -121,7 +121,7 @@ function CountdownEditor({ user, onSaved }) {
         <button
           onClick={handleSet}
           disabled={saving || !days || parseInt(days, 10) <= 0}
-          className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs font-medium transition-colors disabled:opacity-40 flex items-center gap-1 min-w-[40px] justify-center"
+          className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#fff] text-xs font-medium transition-colors disabled:opacity-40 flex items-center gap-1 min-w-[40px] justify-center"
         >
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : saved ? <Check className="w-3 h-3" /> : 'Set'}
         </button>

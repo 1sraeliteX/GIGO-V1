@@ -128,7 +128,7 @@ export default function GrindReport() {
               </label>
               <div className="flex items-end">
                 <button onClick={saveSettings} disabled={saving}
-                  className="w-full text-xs bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-lg px-3 py-2 transition-colors">
+                  className="w-full text-xs bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#fff] font-semibold rounded-lg px-3 py-2 transition-colors">
                   {saving ? 'Saving…' : 'Save & recalculate'}
                 </button>
               </div>

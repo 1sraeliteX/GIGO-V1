@@ -193,7 +193,7 @@ function PlanCard({ plan: initialPlan, onSaved }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#fff] text-sm font-medium transition-colors disabled:opacity-50"
         >
           {saving
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>

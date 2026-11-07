@@ -49,7 +49,7 @@ export default function SubscribeCallback() {
             <h1 className="text-white font-semibold mb-2">Payment confirmed</h1>
             <p className="text-sm text-neutral-400 mb-6">{detail}</p>
             <button onClick={() => navigate('/')}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-medium transition-colors">
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 text-sm font-medium transition-colors">
               Go to dashboard
             </button>
           </>

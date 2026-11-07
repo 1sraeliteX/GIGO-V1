@@ -65,6 +65,7 @@ use App\Controllers\AccountController;
 use App\Controllers\SubscriptionController;
 use App\Controllers\AdminController;
 use App\Controllers\GrindReportController;
+use App\Controllers\SupportController;
 
 $router = new Router();
 
@@ -90,6 +91,9 @@ $router->put('/api/grind-report/settings', [GrindReportController::class, 'updat
 $router->get('/api/settings', [SettingsController::class, 'show']);
 $router->put('/api/settings', [SettingsController::class, 'update']);
 
+// Public support widget config (used on every page, including login/register)
+$router->get('/api/support/config', [SupportController::class, 'config']);
+
 $router->get('/api/accounts', [AccountController::class, 'index']);
 $router->post('/api/accounts', [AccountController::class, 'store']);
 $router->put('/api/accounts/{id}', [AccountController::class, 'update']);
@@ -104,6 +108,9 @@ $router->post('/api/paystack/webhook', [SubscriptionController::class, 'webhook'
 $router->get('/api/admin/payment-settings', [AdminController::class, 'getPaymentSettings']);
 $router->put('/api/admin/payment-settings', [AdminController::class, 'updatePaymentSettings']);
 $router->post('/api/admin/payment-settings/test', [AdminController::class, 'testPaymentSettings']);
+
+$router->get('/api/admin/support-settings', [SupportController::class, 'adminShow']);
+$router->put('/api/admin/support-settings', [SupportController::class, 'adminUpdate']);
 
 // Admin routes — all protected by Middleware::authorizeAdmin()
 $router->get('/api/admin/stats',                              [AdminController::class, 'stats']);

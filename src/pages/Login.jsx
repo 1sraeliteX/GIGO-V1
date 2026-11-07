@@ -44,8 +44,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
       <div className="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-8">
         <div className="flex items-center gap-3 mb-6">
-          <img src="/logo.png" alt="Wealthalliance" className="w-14 h-14 rounded-full object-cover" />
-          <h1 className="text-2xl font-bold text-white">Wealthalliance</h1>
+          <img src="/logo.png" alt="Tradora" className="w-14 h-14 rounded-full object-cover" />
+          <h1 className="text-2xl font-bold text-white">Tradora</h1>
         </div>
         <h2 className="text-lg text-neutral-400 mb-6">Sign in to your account</h2>
         {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
@@ -71,7 +71,7 @@ export default function Login() {
           </div>
           <TurnstileWidget ref={turnstileRef} action="login" onToken={setTurnstileToken} />
           <button type="submit" disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>

@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings, KeyRound } from 'lucide-react';
+import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings, KeyRound, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -9,6 +9,7 @@ const NAV = [
   { to: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
   { to: '/admin/plans',         label: 'Plans',         icon: Settings },
   { to: '/admin/payments',      label: 'Payments',      icon: KeyRound },
+  { to: '/admin/support',       label: 'Support Widget', icon: MessageCircle },
 ];
 
 export default function AdminLayout() {
@@ -30,8 +31,8 @@ export default function AdminLayout() {
         <div className="px-5 py-4 border-b border-neutral-800">
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Wealthalliance" className="w-9 h-9 rounded-full object-cover shrink-0" />
-              <span className="text-white font-bold text-sm tracking-wide">Wealthalliance</span>
+              <img src="/logo.png" alt="Tradora" className="w-9 h-9 rounded-full object-cover shrink-0" />
+              <span className="text-white font-bold text-sm tracking-wide">Tradora</span>
             </div>
             <button
               onClick={toggleTheme}
@@ -75,14 +76,14 @@ export default function AdminLayout() {
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
           >
             <LayoutDashboard className="w-4 h-4 shrink-0" />
-            Back to Wealthalliance
+            Back to Tradora
           </NavLink>
           <div className="px-3 py-2">
             <p className="text-xs text-neutral-500 truncate">{user?.email}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-neutral-800 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm bg-red-600 hover:bg-red-500 text-[#fff] transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             Logout

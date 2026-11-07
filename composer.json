@@ -1,6 +1,6 @@
 {
-    "name": "trade-journal/app",
-    "description": "TradeJournal - Trader Performance Tracking",
+    "name": "tradora/app",
+    "description": "Tradora - Trader Performance Tracking",
     "autoload": {
         "psr-4": {
             "App\\": "app/"

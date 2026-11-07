@@ -90,7 +90,7 @@ export default function OnboardingOverlay({ onComplete, onSkip }) {
             </button>
             <button
               onClick={handleNext}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1.5"
             >
               {isLast ? 'Get Started' : 'Next'}
               {!isLast && <ChevronRight className="w-4 h-4" />}

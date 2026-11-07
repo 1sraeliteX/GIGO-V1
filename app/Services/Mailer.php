@@ -13,9 +13,9 @@ class Mailer
             $from = 'no-reply@' . $host;
         }
 
-        $subject = 'Reset your Wealthalliance password';
+        $subject = 'Reset your Tradora password';
         $body = "Hi {$name},\n\n"
-            . "We received a request to reset your Wealthalliance password.\n"
+            . "We received a request to reset your Tradora password.\n"
             . "Use the link below to choose a new one. It expires in 1 hour and can be used once.\n\n"
             . "{$link}\n\n"
             . "If you didn't request this, you can safely ignore this email.\n";

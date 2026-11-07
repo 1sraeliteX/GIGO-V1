@@ -56,7 +56,7 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
             <p className="text-neutral-500 mb-6">No trades recorded for this day.</p>
             <button
               onClick={() => onAddTrade(date)}
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-[#fff] px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Add Trade

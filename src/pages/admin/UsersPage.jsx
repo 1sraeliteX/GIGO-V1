@@ -47,7 +47,7 @@ function ConfirmDeleteModal({ user, onConfirm, onCancel, loading }) {
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-[#fff] text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             Delete
@@ -164,7 +164,7 @@ function EditUserModal({ user, onSave, onCancel, currentAdminId }) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-[#fff] text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               Save
@@ -372,7 +372,7 @@ export default function UsersPage() {
                     {/* User info */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-[#fff] shrink-0">
                           {u.name?.charAt(0)?.toUpperCase()}
                         </div>
                         <div className="min-w-0">

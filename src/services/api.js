@@ -78,6 +78,9 @@ export const api = {
     initialize: (body) => request('/subscribe/initialize', { method: 'POST', body: JSON.stringify(body) }),
     verify: (reference) => request(`/subscribe/verify?reference=${reference}`),
   },
+  support: {
+    config: () => request('/support/config'),
+  },
   admin: {
     stats: () => request('/admin/stats'),
     users: {
@@ -107,6 +110,10 @@ export const api = {
       get: () => request('/admin/payment-settings'),
       update: (body) => request('/admin/payment-settings', { method: 'PUT', body: JSON.stringify(body) }),
       test: () => request('/admin/payment-settings/test', { method: 'POST' }),
+    },
+    support: {
+      get: () => request('/admin/support-settings'),
+      update: (body) => request('/admin/support-settings', { method: 'PUT', body: JSON.stringify(body) }),
     },
   },
 };

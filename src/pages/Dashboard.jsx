@@ -101,7 +101,7 @@ export default function Dashboard() {
       await loadAccounts();
       setSelectedAccountId(data.id);
       localStorage.setItem('onboarding_complete', 'true');
-      success('Account created! Welcome to Wealthalliance.');
+      success('Account created! Welcome to Tradora.');
     } catch (err) {
       setCreateError(err.message || 'Failed to create account. Please try again.');
     } finally {
@@ -307,8 +307,8 @@ export default function Dashboard() {
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-6 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
-                <img src="/logo.png" alt="Wealthalliance" className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shrink-0" />
-                <h1 className="text-base sm:text-xl font-bold text-white shrink-0">Wealthalliance</h1>
+                <img src="/logo.png" alt="Tradora" className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover shrink-0" />
+                <h1 className="text-base sm:text-xl font-bold text-white shrink-0">Tradora</h1>
               </div>
               <div className="min-w-0 max-w-[140px] sm:max-w-none">
                 <AccountSwitcher
@@ -349,7 +349,7 @@ export default function Dashboard() {
               </button>
               <div className="relative shrink-0" ref={menuRef}>
                 <button onClick={() => setShowMenu(v => !v)}
-                  className="ml-1 sm:ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-xs sm:text-sm font-bold text-white transition-colors"
+                  className="ml-1 sm:ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-xs sm:text-sm font-bold text-[#fff] transition-colors"
                   title="Menu"
                 >
                   {user?.name?.charAt(0)?.toUpperCase() || <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
@@ -379,7 +379,7 @@ export default function Dashboard() {
                     )}
                     <div className="border-t border-neutral-700" />
                     <button onClick={logout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-neutral-700/50 transition-colors">
+                      className="w-full text-left px-4 py-2 text-sm bg-red-600 hover:bg-red-500 text-[#fff] transition-colors">
                       Logout
                     </button>
                   </div>
@@ -396,13 +396,13 @@ export default function Dashboard() {
             <div className="flex items-center justify-end mb-4">
               <button
                 onClick={logout}
-                className="text-xs text-neutral-500 hover:text-red-400 transition-colors flex items-center gap-1.5"
+                className="text-xs bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Logout
               </button>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Wealthalliance</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Tradora</h2>
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
             <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
               {createError && (
@@ -430,7 +430,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <button type="submit" disabled={creating}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50">
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50">
                 {creating ? 'Creating...' : 'Create Account'}
               </button>
             </form>
@@ -511,7 +511,7 @@ export default function Dashboard() {
       {accounts.length > 0 && (
         <button
           onClick={handleOpenAddTrade}
-          className="fixed bottom-4 right-3 sm:bottom-8 sm:right-8 w-11 h-11 sm:w-14 sm:h-14 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center text-lg sm:text-2xl transition-colors z-40"
+          className="fixed bottom-4 right-3 sm:bottom-8 sm:right-8 w-11 h-11 sm:w-14 sm:h-14 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-full shadow-lg flex items-center justify-center text-lg sm:text-2xl transition-colors z-40"
         >
           +
         </button>

@@ -222,7 +222,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
                 <button key={type} type="button" onClick={() => handleChange('market_type', type)}
                   className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
                     form.market_type === type
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-emerald-600 text-[#fff]'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}>
                   {type === 'derived' ? 'Synthetic' : type}
@@ -260,7 +260,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
                           onClick={() => selectPair(item.symbol)}
                           className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between ${
                             globalIdx === highlightIdx
-                              ? 'bg-emerald-600/20 text-white'
+                              ? 'bg-emerald-600/20 text-[#fff]'
                               : 'text-neutral-300 hover:bg-neutral-700/50'
                           }`}
                         >
@@ -293,7 +293,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
                   <button key={type} type="button" onClick={() => handleChange('risk_type', type)}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize ${
                       form.risk_type === type
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-emerald-600 text-[#fff]'
                         : 'bg-neutral-800 text-neutral-400 hover:text-white'
                     }`}>
                     {type === 'amount' ? `Amount (${currency.symbol})` : 'Percentage (%)'}
@@ -347,7 +347,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
                 <button key={r} type="button" onClick={() => handleChange('result', r)}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
                     form.result === r
-                      ? r === 'win' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+                      ? r === 'win' ? 'bg-emerald-600 text-[#fff]' : 'bg-red-600 text-[#fff]'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}>
                   {r === 'win' ? 'Win' : 'Loss'}
@@ -406,7 +406,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 transition-colors disabled:opacity-50">
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 transition-colors disabled:opacity-50">
               {saving ? 'Saving...' : trade ? 'Update Trade' : 'Save Trade'}
             </button>
           </div>

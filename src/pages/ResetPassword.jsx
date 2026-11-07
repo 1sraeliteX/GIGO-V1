@@ -42,8 +42,8 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-neutral-950 px-4">
       <div className="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-8">
         <div className="flex items-center gap-3 mb-6">
-          <img src="/logo.png" alt="Wealthalliance" className="w-14 h-14 rounded-full object-cover" />
-          <h1 className="text-2xl font-bold text-white">Wealthalliance</h1>
+          <img src="/logo.png" alt="Tradora" className="w-14 h-14 rounded-full object-cover" />
+          <h1 className="text-2xl font-bold text-white">Tradora</h1>
         </div>
         <h2 className="text-lg text-neutral-400 mb-6">Choose a new password</h2>
 
@@ -57,7 +57,7 @@ export default function ResetPassword() {
             <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
             <p className="text-white font-medium mb-2">Password updated</p>
             <p className="text-sm text-neutral-400 mb-4">You can now sign in with your new password.</p>
-            <Link to="/login" className="inline-block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2.5 transition-colors">
+            <Link to="/login" className="inline-block w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] font-medium rounded-lg py-2.5 transition-colors">
               Sign in
             </Link>
           </div>
@@ -82,7 +82,7 @@ export default function ResetPassword() {
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 transition-colors" />
               </div>
               <button type="submit" disabled={loading}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
                 {loading ? 'Updating...' : 'Update password'}
               </button>
             </form>

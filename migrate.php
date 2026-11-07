@@ -21,6 +21,7 @@ require_once __DIR__ . '/app/Migrations/013_create_grind_settings_table.php';
 require_once __DIR__ . '/app/Migrations/014_relax_trades_market_type_check.php';
 require_once __DIR__ . '/app/Migrations/015_create_payment_settings_table.php';
 require_once __DIR__ . '/app/Migrations/016_create_password_resets_table.php';
+require_once __DIR__ . '/app/Migrations/017_create_site_settings_table.php';
 
 $action = $argv[1] ?? 'up';
 
@@ -42,6 +43,7 @@ if ($action === 'up') {
         'App\Migrations\RelaxTradesMarketTypeCheck::up',
         'App\Migrations\CreatePaymentSettingsTable::up',
         'App\Migrations\CreatePasswordResetsTable::up',
+        'App\Migrations\CreateSiteSettingsTable::up',
     ];
     foreach ($steps as $step) {
         try {

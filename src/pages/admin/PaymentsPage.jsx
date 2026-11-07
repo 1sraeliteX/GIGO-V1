@@ -106,7 +106,7 @@ export default function PaymentsPage() {
 
           <div className="flex gap-2">
             <button onClick={save} disabled={saving}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold rounded-lg py-2.5 transition-colors">
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-[#fff] text-sm font-semibold rounded-lg py-2.5 transition-colors">
               {saving ? 'Saving…' : 'Save keys'}
             </button>
             <button onClick={test} disabled={testing || !enabled}

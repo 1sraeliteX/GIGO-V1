@@ -109,7 +109,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
                   placeholder={`Capital (${currency.symbol})`}
                   className="w-full bg-neutral-900 border border-neutral-700 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs text-white focus:outline-none focus:border-emerald-500" />
                 <button onClick={handleCreate} disabled={creating}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors disabled:opacity-50">
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors disabled:opacity-50">
                   {creating ? 'Creating...' : 'Create'}
                 </button>
               </div>
