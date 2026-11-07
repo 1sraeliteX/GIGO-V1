@@ -5,3 +5,4 @@
 /database.sqlite
 /public/assets/
 /cache/
+/config/.env.production
