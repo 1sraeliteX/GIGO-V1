@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [showTradeList, setShowTradeList] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [editTrade, setEditTrade] = useState(null);
+  const [duplicateTrade, setDuplicateTrade] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [prefillDate, setPrefillDate] = useState(null);
   const [limitError, setLimitError] = useState('');
@@ -217,6 +218,7 @@ export default function Dashboard() {
       success('Trade saved successfully');
     }
     setEditTrade(null);
+    setDuplicateTrade(null);
     setStatsKey(k => k + 1);
     await fetchTrades();
   };
@@ -224,6 +226,12 @@ export default function Dashboard() {
   const handleEdit = (trade) => {
     setSelectedDay(null);
     setEditTrade(trade);
+    setShowAddModal(true);
+  };
+
+  const handleDuplicate = (trade) => {
+    setSelectedDay(null);
+    setDuplicateTrade(trade);
     setShowAddModal(true);
   };
 
@@ -271,6 +279,7 @@ export default function Dashboard() {
   const handleCloseModal = () => {
     setShowAddModal(false);
     setEditTrade(null);
+    setDuplicateTrade(null);
     setPrefillDate(null);
   };
 
@@ -524,6 +533,7 @@ export default function Dashboard() {
             onClose={handleCloseModal}
             onSave={handleSave}
             trade={editTrade}
+            duplicateTrade={duplicateTrade}
             prefillDate={prefillDate}
             accounts={accounts}
             selectedAccountId={selectedAccountId}
@@ -535,6 +545,7 @@ export default function Dashboard() {
             maxPerDay={maxPerDay}
             onClose={() => setSelectedDay(null)}
             onEdit={handleEdit}
+            onDuplicate={handleDuplicate}
             onDelete={handleDelete}
             onAddTrade={handleDayAddTrade}
             accountCapital={accountCapital}
@@ -545,6 +556,7 @@ export default function Dashboard() {
             onClose={() => setShowTradeList(false)}
             trades={trades}
             onEdit={handleEdit}
+            onDuplicate={handleDuplicate}
             onDelete={handleDelete}
             onAddTrade={handleOpenAddTrade}
             accountCapital={accountCapital}

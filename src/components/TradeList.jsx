@@ -1,4 +1,4 @@
-import { X, Edit2, Trash2, Plus } from 'lucide-react';
+import { X, Edit2, Trash2, Plus, Copy } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 
 function calcDayPct(trades, capital) {
@@ -11,7 +11,7 @@ function calcDayPct(trades, capital) {
   return null;
 }
 
-export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, onAddTrade, accountCapital }) {
+export default function TradeList({ isOpen, onClose, trades, onEdit, onDuplicate, onDelete, onAddTrade, accountCapital }) {
   const { formatMoney, formatMoneyCompact, currency } = useCurrency();
   if (!isOpen) return null;
 
@@ -109,6 +109,9 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDelete, o
                           )}
                         </div>
                         <div className="flex gap-0.5 sm:gap-1 shrink-0">
+                          <button onClick={() => { onClose(); onDuplicate(trade); }} className="p-1 sm:p-1.5 text-neutral-500 hover:text-white transition-colors rounded hover:bg-neutral-700" title="Duplicate trade">
+                            <Copy className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+                          </button>
                           <button onClick={() => { onClose(); onEdit(trade); }} className="p-1 sm:p-1.5 text-neutral-500 hover:text-white transition-colors rounded hover:bg-neutral-700">
                             <Edit2 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                           </button>

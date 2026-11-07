@@ -4,7 +4,7 @@ import { SESSIONS, getSessionLocalTime, getActiveSessions } from '../constants/s
 import { useCurrency } from '../context/CurrencyContext';
 import { useTimezone } from '../context/TimezoneContext';
 
-export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate, accounts, selectedAccountId }) {
+export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTrade, prefillDate, accounts, selectedAccountId }) {
   const { currency, formatMoney } = useCurrency();
   const { timezone } = useTimezone();
   const [form, setForm] = useState({
@@ -46,6 +46,22 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
         session: trade.session || '',
         notes: trade.notes || '',
       });
+    } else if (duplicateTrade) {
+      setForm({
+        trade_date: duplicateTrade.trade_date,
+        account_id: duplicateTrade.account_id || '',
+        market_type: duplicateTrade.market_type,
+        pair: duplicateTrade.pair,
+        lot_size: duplicateTrade.lot_size,
+        risk_type: duplicateTrade.risk_type,
+        risk_value: duplicateTrade.risk_value,
+        result: duplicateTrade.result,
+        pnl_amount: Math.abs(duplicateTrade.pnl_amount),
+        target_amount: duplicateTrade.target_amount || '',
+        risk_reward: duplicateTrade.risk_reward || '',
+        session: duplicateTrade.session || '',
+        notes: duplicateTrade.notes || '',
+      });
     } else {
       // Suggest the currently active session based on user timezone
       const active = getActiveSessions(timezone);
@@ -67,7 +83,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
     }
     setSearchOpen(false);
     setSearchQuery('');
-  }, [trade, isOpen, prefillDate, selectedAccountId]);
+  }, [trade, duplicateTrade, isOpen, prefillDate, selectedAccountId]);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -190,7 +206,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-neutral-900 rounded-xl border border-neutral-800 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-neutral-800">
-          <h2 className="text-lg font-semibold text-white">{trade ? 'Edit Trade' : 'Add Trade'}</h2>
+          <h2 className="text-lg font-semibold text-white">{trade ? 'Edit Trade' : duplicateTrade ? 'Duplicate Trade' : 'Add Trade'}</h2>
           <button onClick={onClose} className="text-neutral-400 hover:text-white text-xl leading-none">&times;</button>
         </div>
 
