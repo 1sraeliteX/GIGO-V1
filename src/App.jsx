@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import GrindReport from './pages/GrindReport';
 import SubscribeCallback from './pages/SubscribeCallback';
@@ -34,6 +36,8 @@ export default function App() {
     <Routes>
       <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="/reset-password"  element={<PublicRoute><ResetPassword /></PublicRoute>} />
       <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/grind-report" element={<ProtectedRoute><GrindReport /></ProtectedRoute>} />
       <Route path="/subscribe/callback" element={<ProtectedRoute><SubscribeCallback /></ProtectedRoute>} />

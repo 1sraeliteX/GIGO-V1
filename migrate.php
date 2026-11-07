@@ -20,6 +20,7 @@ require_once __DIR__ . '/app/Migrations/012_create_plan_settings_table.php';
 require_once __DIR__ . '/app/Migrations/013_create_grind_settings_table.php';
 require_once __DIR__ . '/app/Migrations/014_relax_trades_market_type_check.php';
 require_once __DIR__ . '/app/Migrations/015_create_payment_settings_table.php';
+require_once __DIR__ . '/app/Migrations/016_create_password_resets_table.php';
 
 $action = $argv[1] ?? 'up';
 
@@ -40,6 +41,7 @@ if ($action === 'up') {
         'App\Migrations\CreateGrindSettingsTable::up',
         'App\Migrations\RelaxTradesMarketTypeCheck::up',
         'App\Migrations\CreatePaymentSettingsTable::up',
+        'App\Migrations\CreatePasswordResetsTable::up',
     ];
     foreach ($steps as $step) {
         try {
@@ -50,6 +52,7 @@ if ($action === 'up') {
     }
     echo "Migrations complete.\n";
 } elseif ($action === 'down') {
+    \App\Migrations\CreatePasswordResetsTable::down();
     \App\Migrations\CreateSubscriptionsTable::down();
     \App\Migrations\AddTradeIndexes::down();
     \App\Migrations\AddMaxTradesPerDayToAccounts::down();

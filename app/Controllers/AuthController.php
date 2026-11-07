@@ -4,7 +4,9 @@ namespace App\Controllers;
 
 use App\Core\Request;
 use App\Helpers\JWT;
+use App\Models\PasswordReset;
 use App\Models\User;
+use App\Services\Mailer;
 use App\Services\Turnstile;
 
 class AuthController
@@ -139,6 +141,88 @@ class AuthController
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Logout failed: ' . $e->getMessage()]);
+        }
+    }
+
+    public function forgotPassword(): void
+    {
+        try {
+            $data = Request::body();
+
+            if (!Turnstile::verify($data['cf-turnstile-response'] ?? null, 'forgot_password')) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Verification failed. Please retry.']);
+                return;
+            }
+
+            $email = is_string($data['email'] ?? null) ? trim($data['email']) : '';
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Enter a valid email address']);
+                return;
+            }
+
+            $user = User::findByEmail($email);
+            if ($user) {
+                $token = bin2hex(random_bytes(32));
+                PasswordReset::create(
+                    (int) $user['id'],
+                    $user['email'],
+                    hash('sha256', $token),
+                    date('Y-m-d H:i:s', time() + 3600)
+                );
+
+                $config = require __DIR__ . '/../../config/config.php';
+                $link = rtrim($config['app']['url'], '/')
+                    . '/reset-password?token=' . $token
+                    . '&email=' . urlencode($user['email']);
+
+                Mailer::sendPasswordReset($user['email'], $user['name'], $link);
+            }
+
+            // Same response whether or not the account exists.
+            echo json_encode(['message' => 'If an account exists for that email, a reset link has been sent.']);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Unable to process password reset: ' . $e->getMessage()]);
+        }
+    }
+
+    public function resetPassword(): void
+    {
+        try {
+            $data = Request::body();
+
+            $email = is_string($data['email'] ?? null) ? trim($data['email']) : '';
+            $token = is_string($data['token'] ?? null) ? $data['token'] : '';
+            $password = is_string($data['password'] ?? null) ? $data['password'] : '';
+
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+                http_response_code(422);
+                echo json_encode(['error' => 'This reset link is invalid or has expired.']);
+                return;
+            }
+
+            if (strlen($password) < 6) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Password must be at least 6 characters']);
+                return;
+            }
+
+            $reset = PasswordReset::findValid($email, hash('sha256', $token));
+            if (!$reset) {
+                http_response_code(400);
+                echo json_encode(['error' => 'This reset link is invalid or has expired.']);
+                return;
+            }
+
+            User::updatePassword((int) $reset['user_id'], $password);
+            PasswordReset::deleteForEmail($email);
+
+            echo json_encode(['message' => 'Password updated. You can now sign in.']);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Unable to reset password: ' . $e->getMessage()]);
         }
     }
 }

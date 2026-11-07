@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, Clock, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Clock, CheckCircle, LogOut } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -7,7 +8,8 @@ import { useCurrency } from '../context/CurrencyContext';
 const PLAN_ICONS = { monthly: '30d', quarterly: '90d', yearly: '365d' };
 
 export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
-  const { user, fetchSubscription } = useAuth();
+  const { user, fetchSubscription, logout } = useAuth();
+  const navigate = useNavigate();
   const { currency } = useCurrency();
   const [plans, setPlans] = useState([]);
   const [checkoutEnabled, setCheckoutEnabled] = useState(false);
@@ -49,6 +51,11 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
       setError(err.message);
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -142,6 +149,17 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
                 $1 = ₦{(plans[selectedPlan]?.ngn_rate ?? 1400).toLocaleString()} &middot; Secure payment. You will be redirected to complete payment.
                 {!checkoutEnabled && plans[selectedPlan]?.payment_link && ' After paying via the link, contact the admin to activate your account.'}
               </p>
+
+              {blocking && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg py-2.5 text-sm font-medium transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
+              )}
             </>
           )}
         </div>

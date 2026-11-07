@@ -31,6 +31,16 @@ class User
         $stmt->execute([':value' => $value, ':id' => $id]);
     }
 
+    public static function updatePassword(int $id, string $password): void
+    {
+        $db = Database::getInstance();
+        $stmt = $db->prepare('UPDATE users SET password_hash = :password_hash WHERE id = :id');
+        $stmt->execute([
+            ':password_hash' => password_hash($password, PASSWORD_BCRYPT),
+            ':id'            => $id,
+        ]);
+    }
+
     public static function create(array $data): int
     {
         $now = date('Y-m-d H:i:s');
