@@ -38,14 +38,36 @@ class Turnstile
         }
 
         $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
-        curl_setopt_array($ch, [
+        $options = [
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => http_build_query($payload),
             CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 10,
-        ]);
+        ];
+
+        // Some PHP builds point openssl.cafile/curl.cainfo at a missing bundle.
+        $caInfo = ini_get('curl.cainfo') ?: ini_get('openssl.cafile');
+        if (!($caInfo && is_file($caInfo))) {
+            $caInfo = '';
+            foreach ([
+                '/etc/ssl/cert.pem',
+                '/etc/pki/tls/certs/ca-bundle.crt',
+                '/usr/local/etc/openssl@3/cert.pem',
+                '/opt/homebrew/etc/openssl@3/cert.pem',
+            ] as $candidate) {
+                if (is_file($candidate)) {
+                    $caInfo = $candidate;
+                    break;
+                }
+            }
+        }
+        if ($caInfo !== '' && is_file($caInfo)) {
+            $options[CURLOPT_CAINFO] = $caInfo;
+        }
+
+        curl_setopt_array($ch, $options);
 
         $body = curl_exec($ch);
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
