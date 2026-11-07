@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -12,6 +13,8 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
   const { login } = useAuth();
   const { success } = useToast();
   const navigate = useNavigate();
@@ -19,14 +22,20 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!turnstileToken) {
+      setError('Please complete the verification challenge.');
+      return;
+    }
     setLoading(true);
     try {
-      const data = await api.auth.register({ name, email, password });
+      const data = await api.auth.register({ name, email, password, 'cf-turnstile-response': turnstileToken });
       login(data.user, data.token);
       success(`Account created! Welcome, ${data.user.name}.`);
       navigate('/');
     } catch (err) {
       setError(err.message);
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     } finally {
       setLoading(false);
     }
@@ -63,6 +72,7 @@ export default function Register() {
               </button>
             </div>
           </div>
+          <TurnstileWidget ref={turnstileRef} action="signup" onToken={setTurnstileToken} />
           <button type="submit" disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
             {loading ? 'Creating account...' : 'Create Account'}

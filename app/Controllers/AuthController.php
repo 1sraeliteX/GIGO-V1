@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Helpers\JWT;
 use App\Models\User;
+use App\Services\Turnstile;
 
 class AuthController
 {
@@ -12,6 +13,12 @@ class AuthController
     {
         try {
             $data = Request::body();
+
+            if (!Turnstile::verify($data['cf-turnstile-response'] ?? null, 'signup')) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Verification failed. Please retry.']);
+                return;
+            }
 
             if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
                 http_response_code(422);
@@ -76,6 +83,12 @@ class AuthController
     {
         try {
             $data = Request::body();
+
+            if (!Turnstile::verify($data['cf-turnstile-response'] ?? null, 'login')) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Verification failed. Please retry.']);
+                return;
+            }
 
             if (empty($data['email']) || empty($data['password'])) {
                 http_response_code(422);
