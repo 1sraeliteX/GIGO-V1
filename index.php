@@ -64,6 +64,7 @@ use App\Controllers\SettingsController;
 use App\Controllers\AccountController;
 use App\Controllers\SubscriptionController;
 use App\Controllers\AdminController;
+use App\Controllers\GrindReportController;
 
 $router = new Router();
 
@@ -78,6 +79,11 @@ $router->put('/api/trades/{id}', [TradeController::class, 'update']);
 $router->delete('/api/trades/{id}', [TradeController::class, 'destroy']);
 
 $router->get('/api/stats', [StatsController::class, 'index']);
+$router->get('/api/stats/activity', [StatsController::class, 'activity']);
+
+$router->get('/api/grind-report', [GrindReportController::class, 'index']);
+$router->get('/api/grind-report/settings', [GrindReportController::class, 'settings']);
+$router->put('/api/grind-report/settings', [GrindReportController::class, 'updateSettings']);
 
 $router->get('/api/settings', [SettingsController::class, 'show']);
 $router->put('/api/settings', [SettingsController::class, 'update']);
@@ -91,6 +97,11 @@ $router->get('/api/subscribe/status', [SubscriptionController::class, 'status'])
 $router->get('/api/subscribe/plans', [SubscriptionController::class, 'plans']);
 $router->post('/api/subscribe/initialize', [SubscriptionController::class, 'initialize']);
 $router->get('/api/subscribe/verify', [SubscriptionController::class, 'verify']);
+$router->post('/api/paystack/webhook', [SubscriptionController::class, 'webhook']);
+
+$router->get('/api/admin/payment-settings', [AdminController::class, 'getPaymentSettings']);
+$router->put('/api/admin/payment-settings', [AdminController::class, 'updatePaymentSettings']);
+$router->post('/api/admin/payment-settings/test', [AdminController::class, 'testPaymentSettings']);
 
 // Admin routes — all protected by Middleware::authorizeAdmin()
 $router->get('/api/admin/stats',                              [AdminController::class, 'stats']);

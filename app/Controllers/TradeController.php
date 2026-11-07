@@ -104,6 +104,7 @@ class TradeController
             }
 
             $tradeId = Trade::create($user['sub'], $data);
+            \App\Services\GrindReportService::clearCache((int) $user['sub']);
 
             http_response_code(201);
             echo json_encode(['message' => 'Trade created', 'id' => $tradeId]);
@@ -146,6 +147,7 @@ class TradeController
             }
 
             Trade::update($id, $data);
+            \App\Services\GrindReportService::clearCache((int) $user['sub']);
             echo json_encode(['message' => 'Trade updated']);
         } catch (\Throwable $e) {
             http_response_code(500);
@@ -166,6 +168,7 @@ class TradeController
             }
 
             Trade::delete($id);
+            \App\Services\GrindReportService::clearCache((int) $user['sub']);
             echo json_encode(['message' => 'Trade deleted']);
         } catch (\Throwable $e) {
             http_response_code(500);
@@ -178,8 +181,8 @@ class TradeController
         $errors = [];
 
         if (empty($data['trade_date'])) $errors[] = 'trade_date is required';
-        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities', 'indices', 'stocks'])) {
-            $errors[] = 'market_type must be forex, crypto, commodities, indices, or stocks';
+        if (empty($data['market_type']) || !in_array($data['market_type'], ['forex', 'crypto', 'commodities', 'indices', 'stocks', 'derived'])) {
+            $errors[] = 'market_type must be forex, crypto, commodities, indices, stocks, or derived';
         }
         if (empty($data['pair'])) $errors[] = 'pair is required';
         if (!isset($data['lot_size']) || (float)$data['lot_size'] <= 0) $errors[] = 'lot_size must be positive';

@@ -17,6 +17,9 @@ require_once __DIR__ . '/app/Migrations/009_add_session_to_trades.php';
 require_once __DIR__ . '/app/Migrations/010_add_admin_and_override_to_users.php';
 require_once __DIR__ . '/app/Migrations/011_add_subscription_override_end_to_users.php';
 require_once __DIR__ . '/app/Migrations/012_create_plan_settings_table.php';
+require_once __DIR__ . '/app/Migrations/013_create_grind_settings_table.php';
+require_once __DIR__ . '/app/Migrations/014_relax_trades_market_type_check.php';
+require_once __DIR__ . '/app/Migrations/015_create_payment_settings_table.php';
 
 $action = $argv[1] ?? 'up';
 
@@ -34,6 +37,9 @@ if ($action === 'up') {
         'App\Migrations\AddAdminAndOverrideToUsers::up',
         'App\Migrations\AddSubscriptionOverrideEndToUsers::up',
         'App\Migrations\CreatePlanSettingsTable::up',
+        'App\Migrations\CreateGrindSettingsTable::up',
+        'App\Migrations\RelaxTradesMarketTypeCheck::up',
+        'App\Migrations\CreatePaymentSettingsTable::up',
     ];
     foreach ($steps as $step) {
         try {

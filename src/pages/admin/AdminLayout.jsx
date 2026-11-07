@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings } from 'lucide-react';
+import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -8,6 +8,7 @@ const NAV = [
   { to: '/admin/users',         label: 'Users',         icon: Users },
   { to: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
   { to: '/admin/plans',         label: 'Plans',         icon: Settings },
+  { to: '/admin/payments',      label: 'Payments',      icon: KeyRound },
 ];
 
 export default function AdminLayout() {

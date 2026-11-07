@@ -4,3 +4,4 @@
 .DS_Store
 /database.sqlite
 /public/assets/
+/cache/

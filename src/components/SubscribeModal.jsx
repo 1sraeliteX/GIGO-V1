@@ -10,6 +10,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
   const { user, fetchSubscription } = useAuth();
   const { currency } = useCurrency();
   const [plans, setPlans] = useState([]);
+  const [checkoutEnabled, setCheckoutEnabled] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +20,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
     if (isOpen) {
       setStep('plans');
       setError('');
-      api.subscribe.plans().then(d => setPlans(d.plans)).catch(() => {});
+      api.subscribe.plans().then(d => { setPlans(d.plans); setCheckoutEnabled(!!d.checkout_enabled); }).catch(() => {});
     }
   }, [isOpen]);
 
@@ -30,16 +31,20 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
     setError('');
     try {
       const plan = plans[selectedPlan];
-      // If admin set a direct payment link, redirect straight to it —
-      // no server-side Paystack initialization needed.
+      // Automated checkout: per-user Paystack transaction so the system knows
+      // exactly who paid and activates the subscription on return/webhook.
+      if (checkoutEnabled) {
+        const data = await api.subscribe.initialize({ plan_type: selectedPlan });
+        setStep('redirect');
+        window.location.href = data.authorization_url;
+        return;
+      }
+      // Fallback: static payment link — cannot be attributed automatically.
       if (plan?.payment_link) {
         window.location.href = plan.payment_link;
         return;
       }
-      // Otherwise fall back to Paystack API initialization
-      const data = await api.subscribe.initialize({ plan_type: selectedPlan });
-      setStep('redirect');
-      window.location.href = data.authorization_url;
+      throw new Error('Online payment is not configured yet. Please contact the admin.');
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -125,14 +130,17 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
               >
                 {loading
                   ? 'Processing...'
-                  : plans[selectedPlan]?.payment_link
-                    ? `Pay $${plans[selectedPlan]?.amount || 0} →`
-                    : `Pay $${plans[selectedPlan]?.amount || 0} with Paystack`
+                  : checkoutEnabled
+                    ? `Pay ₦${((plans[selectedPlan]?.amount || 0) * (plans[selectedPlan]?.ngn_rate ?? 1400)).toLocaleString()} with Paystack`
+                    : plans[selectedPlan]?.payment_link
+                      ? `Pay $${plans[selectedPlan]?.amount || 0} →`
+                      : `Pay $${plans[selectedPlan]?.amount || 0} with Paystack`
                 }
               </button>
 
               <p className="text-[10px] text-neutral-600 text-center">
                 $1 = ₦{(plans[selectedPlan]?.ngn_rate ?? 1400).toLocaleString()} &middot; Secure payment. You will be redirected to complete payment.
+                {!checkoutEnabled && plans[selectedPlan]?.payment_link && ' After paying via the link, contact the admin to activate your account.'}
               </p>
             </>
           )}

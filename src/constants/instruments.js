@@ -107,6 +107,48 @@ export const CRYPTO = [
   { symbol: 'TONUSD', label: 'TON/USD' },
 ];
 
+// Deriv synthetic indices — symbol strings are the exact API identifiers.
+export const DERIVED_JUMP = [
+  { symbol: 'JUMP_10_INDEX', label: 'Jump 10 Index' },
+  { symbol: 'JUMP_25_INDEX', label: 'Jump 25 Index' },
+  { symbol: 'JUMP_50_INDEX', label: 'Jump 50 Index' },
+  { symbol: 'JUMP_75_INDEX', label: 'Jump 75 Index' },
+];
+
+export const DERIVED_VOLATILITY = [
+  { symbol: 'VOLATILITY_10_INDEX', label: 'Volatility 10 Index' },
+  { symbol: 'VOLATILITY_25_INDEX', label: 'Volatility 25 Index' },
+  { symbol: 'VOLATILITY_50_INDEX', label: 'Volatility 50 Index' },
+  { symbol: 'VOLATILITY_75_INDEX', label: 'Volatility 75 Index' },
+  { symbol: 'VOLATILITY_100_INDEX', label: 'Volatility 100 Index' },
+  { symbol: 'VOLATILITY_10_1S_INDEX', label: 'Volatility 10 (1s) Index' },
+  { symbol: 'VOLATILITY_25_1S_INDEX', label: 'Volatility 25 (1s) Index' },
+  { symbol: 'VOLATILITY_50_1S_INDEX', label: 'Volatility 50 (1s) Index' },
+  { symbol: 'VOLATILITY_75_1S_INDEX', label: 'Volatility 75 (1s) Index' },
+  { symbol: 'VOLATILITY_150_1S_INDEX', label: 'Volatility 150 (1s) Index' },
+];
+
+export const DERIVED_BOOM = [
+  { symbol: 'BOOM_50_INDEX', label: 'Boom 50 Index' },
+  { symbol: 'BOOM_99_INDEX', label: 'Boom 99 Index' },
+  { symbol: 'BOOM_100_INDEX', label: 'Boom 100 Index' },
+  { symbol: 'BOOM_150_INDEX', label: 'Boom 150 Index' },
+  { symbol: 'BOOM_200_INDEX', label: 'Boom 200 Index' },
+  { symbol: 'BOOM_300_INDEX', label: 'Boom 300 Index' },
+  { symbol: 'BOOM_500_INDEX', label: 'Boom 500 Index' },
+  { symbol: 'BOOM_900_INDEX', label: 'Boom 900 Index' },
+];
+
+export const DERIVED_CRASH = [
+  { symbol: 'CRASH_50_INDEX', label: 'Crash 50 Index' },
+  { symbol: 'CRASH_99_INDEX', label: 'Crash 99 Index' },
+  { symbol: 'CRASH_200_INDEX', label: 'Crash 200 Index' },
+  { symbol: 'CRASH_300_INDEX', label: 'Crash 300 Index' },
+  { symbol: 'CRASH_500_INDEX', label: 'Crash 500 Index' },
+  { symbol: 'CRASH_900_INDEX', label: 'Crash 900 Index' },
+  { symbol: 'CRASH_1000_INDEX', label: 'Crash 1000 Index' },
+];
+
 export const INSTRUMENTS_BY_CATEGORY = {
   forex: [
     { subcategory: 'majors', items: FOREX_MAJORS },
@@ -121,6 +163,12 @@ export const INSTRUMENTS_BY_CATEGORY = {
   crypto: [
     { subcategory: 'all', items: CRYPTO },
   ],
+  derived: [
+    { subcategory: 'jump', items: DERIVED_JUMP },
+    { subcategory: 'volatility', items: DERIVED_VOLATILITY },
+    { subcategory: 'boom', items: DERIVED_BOOM },
+    { subcategory: 'crash', items: DERIVED_CRASH },
+  ],
 };
 
 const withMeta = (items, category, subcategory) =>
@@ -134,12 +182,17 @@ export const ALL_INSTRUMENTS = [
   ...withMeta(COMMODITIES_ENERGIES, 'commodities', 'energies'),
   ...withMeta(COMMODITIES_AGRICULTURE, 'commodities', 'agriculture'),
   ...withMeta(CRYPTO, 'crypto', 'all'),
+  ...withMeta(DERIVED_JUMP, 'derived', 'jump'),
+  ...withMeta(DERIVED_VOLATILITY, 'derived', 'volatility'),
+  ...withMeta(DERIVED_BOOM, 'derived', 'boom'),
+  ...withMeta(DERIVED_CRASH, 'derived', 'crash'),
 ];
 
 export const CATEGORY_LABELS = {
   forex: 'Forex',
   commodities: 'Commodities',
   crypto: 'Crypto',
+  derived: 'Derived / Synthetic Indices',
 };
 
 export const SUBCATEGORY_LABELS = {
@@ -150,6 +203,10 @@ export const SUBCATEGORY_LABELS = {
   energies: 'Energies',
   agriculture: 'Agriculture',
   all: 'All',
+  jump: 'Jump Indices',
+  volatility: 'Volatility Indices',
+  boom: 'Boom Indices',
+  crash: 'Crash Indices',
 };
 
 export function findInstrument(symbol) {

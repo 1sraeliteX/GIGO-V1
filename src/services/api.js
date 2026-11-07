@@ -46,10 +46,23 @@ export const api = {
     get: (query) => request(`/stats?${query}`),
     getAllTime: (accountId) => request(`/stats?all_time=1${accountId ? `&account_id=${accountId}` : ''}`),
     getYear: (year, accountId) => request(`/stats?year=${year}${accountId ? `&account_id=${accountId}` : ''}`),
+    activity: ({ start, end, account_id } = {}) => {
+      const qs = new URLSearchParams({ start, end });
+      if (account_id) qs.set('account_id', account_id);
+      return request(`/stats/activity?${qs.toString()}`);
+    },
   },
   settings: {
     get: () => request('/settings'),
     update: (body) => request('/settings', { method: 'PUT', body: JSON.stringify(body) }),
+  },
+  grindReport: {
+    get: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return request(`/grind-report${qs ? '?' + qs : ''}`);
+    },
+    getSettings: () => request('/grind-report/settings'),
+    updateSettings: (body) => request('/grind-report/settings', { method: 'PUT', body: JSON.stringify(body) }),
   },
   accounts: {
     list: () => request('/accounts'),
@@ -87,6 +100,11 @@ export const api = {
     plans: {
       list: ()           => request('/admin/plans'),
       update: (key, body) => request(`/admin/plans/${key}`, { method: 'PUT', body: JSON.stringify(body) }),
+    },
+    paymentSettings: {
+      get: () => request('/admin/payment-settings'),
+      update: (body) => request('/admin/payment-settings', { method: 'PUT', body: JSON.stringify(body) }),
+      test: () => request('/admin/payment-settings/test', { method: 'POST' }),
     },
   },
 };

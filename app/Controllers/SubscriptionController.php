@@ -10,8 +10,8 @@ class SubscriptionController
 {
     private function paystackRequest(string $path, string $method = 'GET', ?array $data = null): array
     {
-        $config = require __DIR__ . '/../../config/config.php';
-        $secret = $config['paystack']['secret_key'];
+        $keys = \App\Models\PaymentSetting::paystackKeys();
+        $secret = $keys['secret_key'];
 
         $ch = curl_init('https://api.paystack.co/' . ltrim($path, '/'));
         curl_setopt_array($ch, [
@@ -137,7 +137,7 @@ class SubscriptionController
                 $plans  = $config['paystack']['plans'];
             }
 
-            echo json_encode(['plans' => $plans]);
+            echo json_encode(['plans' => $plans, 'checkout_enabled' => !empty(\App\Models\PaymentSetting::paystackKeys()['secret_key'])]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to fetch plans: ' . $e->getMessage()]);
@@ -155,7 +155,8 @@ class SubscriptionController
 
             // Load plan from DB (authoritative source), fall back to config
             $db = Database::getInstance();
-            $planRow = $db->prepare('SELECT label, days, amount_usd FROM plan_settings WHERE plan_key = :key AND is_active = 1 LIMIT 1');
+            $keys = \App\Models\PaymentSetting::paystackKeys();
+            $planRow = $db->prepare('SELECT label, days, amount_usd, ngn_rate FROM plan_settings WHERE plan_key = :key AND is_active = 1 LIMIT 1');
             $planRow->execute([':key' => $planType]);
             $planData = $planRow->fetch();
 
@@ -167,15 +168,24 @@ class SubscriptionController
                     echo json_encode(['error' => 'Invalid plan type']);
                     return;
                 }
-                $planData = ['days' => $plans[$planType]['days'], 'amount_usd' => $plans[$planType]['amount']];
+                $planData = ['days' => $plans[$planType]['days'], 'amount_usd' => $plans[$planType]['amount'], 'ngn_rate' => 1400];
             }
 
-            $amountKobo = (float)$planData['amount_usd'] * 100;
+            if (empty($keys['secret_key'])) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Online payment is not configured yet. Please contact the admin.']);
+                return;
+            }
+
+            // Charge in NGN: USD price converted at the plan's ngn_rate, in kobo.
+            $amountNgn = (int) round((float) $planData['amount_usd'] * (int) ($planData['ngn_rate'] ?? 1400));
+            $amountKobo = $amountNgn * 100;
             $reference  = 'SUB-' . $user['sub'] . '-' . time();
 
             $result = $this->paystackRequest('/transaction/initialize', 'POST', [
                 'email' => $user['email'],
                 'amount' => $amountKobo,
+                'currency' => 'NGN',
                 'reference' => $reference,
                 'metadata' => [
                     'user_id'   => $user['sub'],
@@ -235,58 +245,115 @@ class SubscriptionController
             $daysToAdd = (int) ($meta['days'] ?? 30);
             // Always use the authenticated user's ID — never trust metadata from Paystack
             // as it could be tampered with to activate another user's subscription.
-            $userId = $user['sub'];
+            $userId = (int) $user['sub'];
 
-            $db = Database::getInstance();
-
-            $stmt = $db->prepare(
-                "SELECT id, end_date FROM subscriptions
-                 WHERE user_id = :user_id AND status = 'active'
-                 ORDER BY end_date DESC LIMIT 1"
-            );
-            $stmt->execute([':user_id' => $userId]);
-            $existing = $stmt->fetch();
-
-            $now = new \DateTime();
-
-            if ($existing && $existing['end_date'] >= $now->format('Y-m-d H:i:s')) {
-                $startDate = new \DateTime($existing['end_date']);
-                $startDate->modify('+1 second');
-            } else {
-                if ($existing) {
-                    $db->prepare("UPDATE subscriptions SET status = 'expired' WHERE id = :id")
-                       ->execute([':id' => $existing['id']]);
-                }
-                $startDate = $now;
-            }
-
-            $endDate = clone $startDate;
-            $endDate->modify('+' . $daysToAdd . ' days');
-
-            $insert = $db->prepare(
-                "INSERT INTO subscriptions (user_id, plan_type, days_added, start_date, end_date, status, paystack_reference)
-                 VALUES (:user_id, :plan_type, :days_added, :start_date, :end_date, 'active', :reference)"
-            );
-            $insert->execute([
-                ':user_id' => $userId,
-                ':plan_type' => $planType,
-                ':days_added' => $daysToAdd,
-                ':start_date' => $startDate->format('Y-m-d H:i:s'),
-                ':end_date' => $endDate->format('Y-m-d H:i:s'),
-                ':reference' => $reference,
-            ]);
-
-            $daysRemaining = (int) (new \DateTime())->diff($endDate)->format('%a');
+            $sub = $this->activateSubscription($userId, $planType, $daysToAdd, $reference);
 
             echo json_encode([
                 'message' => 'Subscription activated successfully',
-                'days_remaining' => $daysRemaining,
+                'days_remaining' => $sub['days_remaining'],
                 'plan_type' => $planType,
-                'end_date' => $endDate->format('Y-m-d H:i:s'),
+                'end_date' => $sub['end_date'],
             ]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Verification failed: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Idempotent activation: one Paystack reference activates exactly once.
+     * Extends the current active subscription if one exists, otherwise starts now.
+     */
+    private function activateSubscription(int $userId, string $planType, int $daysToAdd, string $reference): array
+    {
+        $db = Database::getInstance();
+
+        $dup = $db->prepare('SELECT id, end_date FROM subscriptions WHERE paystack_reference = :ref LIMIT 1');
+        $dup->execute([':ref' => $reference]);
+        if ($existing = $dup->fetch()) {
+            $days = max(0, (int) (new \DateTime())->diff(new \DateTime($existing['end_date']))->format('%a'));
+            return ['end_date' => $existing['end_date'], 'days_remaining' => $days];
+        }
+
+        $stmt = $db->prepare(
+            "SELECT id, end_date FROM subscriptions
+             WHERE user_id = :user_id AND status = 'active'
+             ORDER BY end_date DESC LIMIT 1"
+        );
+        $stmt->execute([':user_id' => $userId]);
+        $existing = $stmt->fetch();
+
+        $now = new \DateTime();
+
+        if ($existing && $existing['end_date'] >= $now->format('Y-m-d H:i:s')) {
+            $startDate = new \DateTime($existing['end_date']);
+            $startDate->modify('+1 second');
+        } else {
+            if ($existing) {
+                $db->prepare("UPDATE subscriptions SET status = 'expired' WHERE id = :id")
+                   ->execute([':id' => $existing['id']]);
+            }
+            $startDate = $now;
+        }
+
+        $endDate = clone $startDate;
+        $endDate->modify('+' . $daysToAdd . ' days');
+
+        $insert = $db->prepare(
+            "INSERT INTO subscriptions (user_id, plan_type, days_added, start_date, end_date, status, paystack_reference)
+             VALUES (:user_id, :plan_type, :days_added, :start_date, :end_date, 'active', :reference)"
+        );
+        $insert->execute([
+            ':user_id' => $userId,
+            ':plan_type' => $planType,
+            ':days_added' => $daysToAdd,
+            ':start_date' => $startDate->format('Y-m-d H:i:s'),
+            ':end_date' => $endDate->format('Y-m-d H:i:s'),
+            ':reference' => $reference,
+        ]);
+
+        $daysRemaining = max(0, (int) (new \DateTime())->diff($endDate)->format('%a'));
+        return ['end_date' => $endDate->format('Y-m-d H:i:s'), 'days_remaining' => $daysRemaining];
+    }
+
+    /**
+     * POST /api/paystack/webhook — server-to-server, no session auth.
+     * Authenticity comes from the x-paystack-signature HMAC (SHA-512 of the raw
+     * body with the secret key). Activates subscriptions even if the user
+     * closed the browser before the redirect/verify step.
+     */
+    public function webhook(): void
+    {
+        $raw = file_get_contents('php://input');
+        $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? '';
+        $keys = \App\Models\PaymentSetting::paystackKeys();
+
+        if (empty($keys['secret_key']) || $signature === '' ||
+            !hash_equals(hash_hmac('sha512', $raw, $keys['secret_key']), $signature)) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Invalid signature']);
+            return;
+        }
+
+        $event = json_decode($raw, true);
+        if (($event['event'] ?? '') !== 'charge.success') {
+            echo json_encode(['status' => 'ignored']);
+            return;
+        }
+
+        $tx = $event['data'] ?? [];
+        $meta = $tx['metadata'] ?? [];
+        $userId = (int) ($meta['user_id'] ?? 0);
+        $reference = $tx['reference'] ?? '';
+
+        if ($userId <= 0 || $reference === '' || ($tx['status'] ?? '') !== 'success') {
+            echo json_encode(['status' => 'ignored']);
+            return;
+        }
+
+        // Metadata is trustworthy here: the payload is signed with our secret key.
+        $this->activateSubscription($userId, $meta['plan_type'] ?? 'monthly', (int) ($meta['days'] ?? 30), $reference);
+        echo json_encode(['status' => 'ok']);
     }
 }

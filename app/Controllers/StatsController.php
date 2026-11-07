@@ -54,4 +54,39 @@ class StatsController
             echo json_encode(['error' => 'Failed to fetch stats: ' . $e->getMessage()]);
         }
     }
+
+    public function activity(): void
+    {
+        try {
+            $user = Middleware::authenticate();
+            $start = Request::query('start', date('Y-m-d', strtotime('-364 days')));
+            $end = Request::query('end', date('Y-m-d'));
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end)) {
+                http_response_code(422);
+                echo json_encode(['error' => 'Invalid date format. Use YYYY-MM-DD']);
+                return;
+            }
+
+            if ($start > $end) {
+                http_response_code(422);
+                echo json_encode(['error' => 'start must be before or equal to end']);
+                return;
+            }
+
+            $accountId = Request::query('account_id');
+            $aid = $accountId !== null && $accountId !== '' ? (int) $accountId : null;
+
+            $activity = Trade::activityByDateRange((int) $user['sub'], $start, $end, $aid);
+
+            echo json_encode([
+                'start' => $start,
+                'end' => $end,
+                'activity' => $activity,
+            ]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch activity: ' . $e->getMessage()]);
+        }
+    }
 }

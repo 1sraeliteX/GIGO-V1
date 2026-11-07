@@ -167,6 +167,74 @@ class Trade
         return $stmt->fetchAll();
     }
 
+    public static function activityByDateRange(int $userId, string $start, string $end, ?int $accountId = null): array
+    {
+        $db = Database::getInstance();
+        $sql = 'SELECT trade_date AS date,
+                       COUNT(*) AS trade_count,
+                       COALESCE(SUM(pnl_amount), 0) AS net_pnl,
+                       COALESCE(SUM(CASE WHEN result = :win THEN 1 ELSE 0 END), 0) AS wins,
+                       COALESCE(SUM(CASE WHEN result = :loss THEN 1 ELSE 0 END), 0) AS losses
+                FROM trades
+                WHERE user_id = :user_id AND trade_date BETWEEN :start AND :end';
+        $params = [
+            ':win' => 'win',
+            ':loss' => 'loss',
+            ':user_id' => $userId,
+            ':start' => $start,
+            ':end' => $end,
+        ];
+
+        if ($accountId !== null) {
+            $sql .= ' AND account_id = :account_id';
+            $params[':account_id'] = $accountId;
+        }
+
+        $sql .= ' GROUP BY trade_date ORDER BY trade_date ASC';
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
+        return array_map(static function (array $row): array {
+            return [
+                'date' => $row['date'],
+                'count' => (int) $row['trade_count'],
+                'netPnL' => (float) $row['net_pnl'],
+                'wins' => (int) $row['wins'],
+                'losses' => (int) $row['losses'],
+            ];
+        }, $stmt->fetchAll());
+    }
+
+    public static function findForGrindReport(int $userId, array $filters = []): array
+    {
+        $db = Database::getInstance();
+        $sql = 'SELECT id, trade_date, created_at, pair, result, pnl_amount FROM trades WHERE user_id = :user_id';
+        $params = [':user_id' => $userId];
+
+        if (!empty($filters['from'])) {
+            $sql .= ' AND trade_date >= :from_date';
+            $params[':from_date'] = $filters['from'];
+        }
+        if (!empty($filters['to'])) {
+            $sql .= ' AND trade_date <= :to_date';
+            $params[':to_date'] = $filters['to'];
+        }
+        if (!empty($filters['pair'])) {
+            $sql .= ' AND pair = :pair';
+            $params[':pair'] = $filters['pair'];
+        }
+        if (!empty($filters['account_id'])) {
+            $sql .= ' AND account_id = :account_id';
+            $params[':account_id'] = (int) $filters['account_id'];
+        }
+
+        $sql .= ' ORDER BY trade_date ASC, created_at ASC, id ASC';
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public static function bestTradeByMonth(int $userId, ?string $month = null, ?int $accountId = null): ?array
     {
         $db = Database::getInstance();

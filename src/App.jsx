@@ -3,11 +3,14 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import GrindReport from './pages/GrindReport';
+import SubscribeCallback from './pages/SubscribeCallback';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminOverviewPage from './pages/admin/AdminOverviewPage';
 import UsersPage from './pages/admin/UsersPage';
 import SubscriptionsPage from './pages/admin/SubscriptionsPage';
 import PlansPage from './pages/admin/PlansPage';
+import PaymentsPage from './pages/admin/PaymentsPage';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -32,6 +35,8 @@ export default function App() {
       <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/grind-report" element={<ProtectedRoute><GrindReport /></ProtectedRoute>} />
+      <Route path="/subscribe/callback" element={<ProtectedRoute><SubscribeCallback /></ProtectedRoute>} />
 
       {/* Admin section */}
       <Route
@@ -42,6 +47,7 @@ export default function App() {
         <Route path="users"         element={<UsersPage />} />
         <Route path="subscriptions" element={<SubscriptionsPage />} />
         <Route path="plans"         element={<PlansPage />} />
+        <Route path="payments"      element={<PaymentsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

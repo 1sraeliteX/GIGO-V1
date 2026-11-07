@@ -507,4 +507,99 @@ class AdminController
             echo json_encode(['error' => 'Failed to update plan: ' . $e->getMessage()]);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // GET /api/admin/payment-settings
+    // Secret key is masked; only its last 4 chars and configured flag exposed.
+    // -------------------------------------------------------------------------
+    public function getPaymentSettings(): void
+    {
+        try {
+            Middleware::authorizeAdmin();
+            $keys = \App\Models\PaymentSetting::paystackKeys();
+            $secret = $keys['secret_key'] ?? '';
+            echo json_encode([
+                'public_key' => $keys['public_key'] ?? '',
+                'secret_key_masked' => $secret !== '' ? '****' . substr($secret, -4) : '',
+                'checkout_enabled' => $secret !== '',
+            ]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to fetch payment settings: ' . $e->getMessage()]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // PUT /api/admin/payment-settings
+    // Body: { public_key?, secret_key? } — empty secret means "keep existing".
+    // -------------------------------------------------------------------------
+    public function updatePaymentSettings(): void
+    {
+        try {
+            Middleware::authorizeAdmin();
+            $data = \App\Core\Request::body();
+
+            if (array_key_exists('public_key', $data)) {
+                $public = trim((string) $data['public_key']);
+                if ($public !== '' && !preg_match('/^pk_(test|live)_[a-zA-Z0-9]+$/', $public)) {
+                    http_response_code(422);
+                    echo json_encode(['error' => 'Public key must look like pk_test_… or pk_live_…']);
+                    return;
+                }
+                \App\Models\PaymentSetting::save('paystack_public_key', $public === '' ? null : $public);
+            }
+            if (array_key_exists('secret_key', $data)) {
+                $secret = trim((string) $data['secret_key']);
+                if ($secret !== '') {
+                    if (!preg_match('/^sk_(test|live)_[a-zA-Z0-9]+$/', $secret)) {
+                        http_response_code(422);
+                        echo json_encode(['error' => 'Secret key must look like sk_test_… or sk_live_…']);
+                        return;
+                    }
+                    \App\Models\PaymentSetting::save('paystack_secret_key', $secret);
+                }
+            }
+
+            echo json_encode(['message' => 'Payment settings saved']);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to save payment settings: ' . $e->getMessage()]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // POST /api/admin/payment-settings/test
+    // Calls a harmless Paystack endpoint with the stored secret key.
+    // -------------------------------------------------------------------------
+    public function testPaymentSettings(): void
+    {
+        try {
+            Middleware::authorizeAdmin();
+            $keys = \App\Models\PaymentSetting::paystackKeys();
+            if (empty($keys['secret_key'])) {
+                http_response_code(422);
+                echo json_encode(['error' => 'No secret key configured']);
+                return;
+            }
+            $ch = curl_init('https://api.paystack.co/bank?currency=NGN&perPage=1');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $keys['secret_key']],
+                CURLOPT_TIMEOUT => 15,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            $body = json_decode($response ?: '', true);
+            if ($httpCode === 200 && ($body['status'] ?? false)) {
+                echo json_encode(['message' => 'Connection successful — Paystack key is valid']);
+            } else {
+                http_response_code(502);
+                echo json_encode(['error' => 'Paystack rejected the key: ' . ($body['message'] ?? "HTTP {$httpCode}")]);
+            }
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Connection test failed: ' . $e->getMessage()]);
+        }
+    }
 }

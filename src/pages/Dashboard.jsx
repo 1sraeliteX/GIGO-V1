@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { INSTRUMENTS_BY_CATEGORY, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
 import StatCards from '../components/StatCards';
 import CalendarGrid from '../components/CalendarGrid';
+import TradeActivityHeatmap from '../components/TradeActivityHeatmap';
 import WeeklyStats from '../components/WeeklyStats';
 import QuoteSection from '../components/QuoteSection';
 import TradeModal from '../components/TradeModal';
@@ -47,6 +48,8 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [statsKey, setStatsKey] = useState(0);
+  const [activity, setActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [symbolFilter, setSymbolFilter] = useState('');
   const [showMenu, setShowMenu] = useState(false);
@@ -166,6 +169,35 @@ export default function Dashboard() {
     fetchTrades();
   }, [fetchTrades]);
 
+  const fetchActivity = useCallback(async () => {
+    if (!selectedAccountId) {
+      setActivity([]);
+      setActivityLoading(false);
+      return;
+    }
+
+    setActivityLoading(true);
+    try {
+      const end = new Date();
+      const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 364);
+      const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const data = await api.stats.activity({
+        start: key(start),
+        end: key(end),
+        account_id: selectedAccountId,
+      });
+      setActivity(data.activity || []);
+    } catch {
+      setActivity([]);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [selectedAccountId]);
+
+  useEffect(() => {
+    fetchActivity();
+  }, [fetchActivity, statsKey]);
+
   const handlePrevMonth = () => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
     else setMonth(m => m - 1);
@@ -203,6 +235,13 @@ export default function Dashboard() {
   };
 
   const handleDayClick = (date) => {
+    setSelectedDay(date);
+  };
+
+  const handleHeatmapDayClick = (date) => {
+    const [y, m] = date.split('-').map(Number);
+    setYear(y);
+    setMonth(m);
     setSelectedDay(date);
   };
 
@@ -324,6 +363,10 @@ export default function Dashboard() {
                     <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Trades
+                    </button>
+                    <button onClick={() => { navigate('/grind-report'); setShowMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
+                      Grind Report
                     </button>
                     {user?.is_admin && (
                       <button
@@ -453,6 +496,13 @@ export default function Dashboard() {
               onPrevMonth={handlePrevMonth}
               onNextMonth={handleNextMonth}
               accountCapital={accountCapital}
+            />
+
+            <TradeActivityHeatmap
+              data={activity}
+              loading={activityLoading}
+              onDayClick={handleHeatmapDayClick}
+              className="mt-6"
             />
           </>
         )}

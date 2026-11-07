@@ -217,15 +217,15 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, prefillDate
 
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Market Type</label>
-            <div className="flex gap-2">
-              {['forex', 'crypto', 'commodities'].map((type) => (
+            <div className="flex gap-2 flex-wrap">
+              {['forex', 'crypto', 'commodities', 'derived'].map((type) => (
                 <button key={type} type="button" onClick={() => handleChange('market_type', type)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+                  className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
                     form.market_type === type
                       ? 'bg-emerald-600 text-white'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
                   }`}>
-                  {type}
+                  {type === 'derived' ? 'Synthetic' : type}
                 </button>
               ))}
             </div>

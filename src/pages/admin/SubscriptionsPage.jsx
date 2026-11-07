@@ -246,8 +246,8 @@ function UserSubRow({ user, onRefresh }) {
             ) : subs.length === 0 ? (
               <p className="text-xs text-neutral-600 pl-6 py-2">No subscription records.</p>
             ) : (
-              <div className="ml-6 mt-1 bg-neutral-800/50 rounded-lg border border-neutral-800 overflow-hidden">
-                <table className="w-full text-xs">
+              <div className="ml-6 mt-1 bg-neutral-800/50 rounded-lg border border-neutral-800 overflow-x-auto">
+                <table className="w-full text-xs min-w-[480px]">
                   <thead>
                     <tr className="border-b border-neutral-700/60">
                       <th className="text-left px-3 py-2 text-neutral-500 font-medium">Plan</th>
@@ -322,8 +322,8 @@ export default function SubscriptionsPage() {
         <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
       )}
 
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[560px]">
           <thead>
             <tr className="border-b border-neutral-800">
               <th className="text-left px-4 py-3 text-xs font-medium text-neutral-500 uppercase tracking-wider">User</th>
