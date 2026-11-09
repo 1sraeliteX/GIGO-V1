@@ -1,12 +1,22 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ALL_INSTRUMENTS, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../constants/instruments';
 import { SESSIONS, getSessionLocalTime, getActiveSessions } from '../constants/sessions';
+import { CURRENCIES } from '../constants/currencies';
 import { useCurrency } from '../context/CurrencyContext';
 import { useTimezone } from '../context/TimezoneContext';
 
 export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTrade, prefillDate, accounts, selectedAccountId }) {
-  const { currency, formatMoney } = useCurrency();
+  const { currency: globalCurrency, formatMoney } = useCurrency();
   const { timezone } = useTimezone();
+
+  const accountCurrency = useMemo(() => {
+    if (!selectedAccountId || !accounts) return globalCurrency;
+    const account = accounts.find((a) => a.id === selectedAccountId);
+    if (!account?.currency) return globalCurrency;
+    return CURRENCIES.find((c) => c.code === account.currency) || globalCurrency;
+  }, [selectedAccountId, accounts, globalCurrency]);
+
+  const currency = accountCurrency;
   const [form, setForm] = useState({
     trade_date: '',
     account_id: '',
@@ -210,7 +220,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
           <button onClick={onClose} className="text-neutral-400 hover:text-white text-xl leading-none">&times;</button>
         </div>
 
-        {error && <div className="mx-6 mt-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>}
+        {error && <div className="mx-6 mt-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {accounts && accounts.length > 0 && (
@@ -290,7 +300,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
               </div>
             )}
             {searchOpen && filtered.length === 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl z-50 p-3 text-sm text-neutral-500 text-center">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl z-50 p-3 text-sm text-neutral-500 text-center break-words">
                 No matches — using &ldquo;{form.pair}&rdquo; as custom symbol
               </div>
             )}
@@ -418,7 +428,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
 
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg py-2.5 transition-colors">
+              className="flex-1 bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2.5 transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}

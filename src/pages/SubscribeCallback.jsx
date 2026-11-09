@@ -47,7 +47,7 @@ export default function SubscribeCallback() {
           <>
             <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
             <h1 className="text-white font-semibold mb-2">Payment confirmed</h1>
-            <p className="text-sm text-neutral-400 mb-6">{detail}</p>
+            <p className="text-sm text-neutral-400 mb-6 break-words">{detail}</p>
             <button onClick={() => navigate('/')}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 text-sm font-medium transition-colors">
               Go to dashboard
@@ -58,7 +58,7 @@ export default function SubscribeCallback() {
           <>
             <XCircle className="w-10 h-10 text-red-400 mx-auto mb-4" />
             <h1 className="text-white font-semibold mb-2">Payment not confirmed</h1>
-            <p className="text-sm text-neutral-400 mb-2">{detail}</p>
+            <p className="text-sm text-neutral-400 mb-2 break-words">{detail}</p>
             <p className="text-xs text-neutral-600 mb-6">If you were charged, your subscription will still activate automatically once Paystack notifies us. You can also contact the admin.</p>
             <button onClick={() => navigate('/')}
               className="w-full bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg py-2.5 text-sm font-medium transition-colors">

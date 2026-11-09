@@ -1,24 +1,29 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { useCurrency } from './CurrencyContext';
 
 const AuthContext = createContext(null);
 
+function readStoredUser() {
+  const stored = localStorage.getItem('user') || sessionStorage.getItem('user');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const { setCurrencyCode } = useCurrency();
+  // Must be synchronous: route guards read user.is_admin on the first render, so an
+  // effect-set user would bounce every /admin deep link or refresh back to the dashboard.
+  const [user, setUser] = useState(readStoredUser);
+  const [token, setToken] = useState(localStorage.getItem('token') || sessionStorage.getItem('token'));
   const [subscription, setSubscription] = useState({ subscribed: false, days_remaining: 0 });
   const [subLoading, setSubLoading] = useState(true);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem('user');
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -48,7 +53,7 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const fetchSubscription = async (showLoading = false) => {
-    if (!localStorage.getItem('token')) return;
+    if (!localStorage.getItem('token') && !sessionStorage.getItem('token')) return;
     // Only show the loading spinner on the initial fetch, not background polls
     if (showLoading) setSubLoading(true);
     try {
@@ -69,12 +74,18 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = (userData, jwt) => {
+  const login = (userData, jwt, remember = false) => {
     setUser(userData);
     setToken(jwt);
     setSubLoading(true);
-    localStorage.setItem('token', jwt);
-    localStorage.setItem('user', JSON.stringify(userData));
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem('token', jwt);
+    storage.setItem('user', JSON.stringify(userData));
+    // Clear the other storage to avoid conflicts
+    (remember ? sessionStorage : localStorage).removeItem('token');
+    (remember ? sessionStorage : localStorage).removeItem('user');
+    // The currency chosen at sign-up is the display currency for balances and accounts.
+    if (userData?.currency) setCurrencyCode(userData.currency);
   };
 
   const logout = () => {
@@ -83,6 +94,8 @@ export function AuthProvider({ children }) {
     setSubscription({ subscribed: false, days_remaining: 0 });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
   };
 
   const updateUser = (updates) => {

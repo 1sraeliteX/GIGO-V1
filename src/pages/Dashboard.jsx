@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Settings, Moon, Sun, User, Filter, X, Clock, ShieldCheck, LogOut } from 'lucide-react';
+import { Settings, Moon, Sun, User, Filter, X, Clock, ShieldCheck, LogOut, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -21,6 +21,8 @@ import CurrencyPicker from '../components/CurrencyPicker';
 import AccountSwitcher from '../components/AccountSwitcher';
 import OnboardingOverlay from '../components/OnboardingOverlay';
 import SubscribeModal from '../components/SubscribeModal';
+import HelpModal from '../components/HelpModal';
+import OnboardingTour from '../components/OnboardingTour';
 
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
@@ -45,7 +47,7 @@ export default function Dashboard() {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [onboardingCapital, setOnboardingCapital] = useState('');
-  const [onboardingCurrency, setOnboardingCurrency] = useState('USD');
+  const [onboardingCurrency, setOnboardingCurrency] = useState(user?.currency || currency.code);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [statsKey, setStatsKey] = useState(0);
@@ -55,6 +57,8 @@ export default function Dashboard() {
   const [symbolFilter, setSymbolFilter] = useState('');
   const [showMenu, setShowMenu] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(null);
+  const [showTour, setShowTour] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -83,6 +87,20 @@ export default function Dashboard() {
       setSelectedAccountId(accounts[0].id);
     }
   }, [accounts, selectedAccountId]);
+
+  // Displays follow the selected account's currency (falling back to the currency chosen
+  // at sign-up). Keyed on account+code so a manual currency change in Settings is not
+  // undone until the account actually changes.
+  const appliedCurrency = useRef(null);
+  useEffect(() => {
+    const account = accounts.find(a => a.id === selectedAccountId);
+    const code = account?.currency || user?.currency;
+    if (!code) return;
+    const key = `${selectedAccountId}:${code}`;
+    if (appliedCurrency.current === key) return;
+    appliedCurrency.current = key;
+    setCurrencyCode(code);
+  }, [accounts, selectedAccountId, user, setCurrencyCode]);
 
   useEffect(() => {
     const now = new Date();
@@ -312,7 +330,7 @@ export default function Dashboard() {
   return (
         <div className="min-h-screen bg-neutral-950">
       {accounts.length > 0 && (
-        <header className="border-b border-neutral-800">
+        <header className="border-b border-neutral-800" data-tour="header">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-6 min-w-0">
               <div className="flex items-center gap-2 shrink-0">
@@ -329,6 +347,13 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-1">
+              <button
+                onClick={() => setShowTour(true)}
+                className="text-neutral-400 hover:text-emerald-400 transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-neutral-800"
+                title="Take a tour"
+              >
+                <HelpCircle className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              </button>
               {!subLoading && subscription.subscribed && subscription.days_remaining !== null && (
                 <button
                   onClick={() => setShowSubscribeModal(true)}
@@ -356,7 +381,7 @@ export default function Dashboard() {
               >
                 <Settings className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
               </button>
-              <div className="relative shrink-0" ref={menuRef}>
+              <div className="relative shrink-0" ref={menuRef} data-tour="menu">
                 <button onClick={() => setShowMenu(v => !v)}
                   className="ml-1 sm:ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center text-xs sm:text-sm font-bold text-[#fff] transition-colors"
                   title="Menu"
@@ -365,17 +390,22 @@ export default function Dashboard() {
                 </button>
                 {showMenu && (
                   <div className="absolute right-0 top-full mt-1.5 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[170px] shadow-lg z-50">
-                    <div className="px-4 py-2 text-sm text-neutral-400 border-b border-neutral-700">
-                      {user?.name}
-                      {user?.email ? <span className="block text-xs text-neutral-500 truncate">{user.email}</span> : null}
+                    <div className="px-4 py-2 text-sm text-neutral-400 border-b border-neutral-700 min-w-0">
+                      <span className="block truncate max-w-[150px]">{user?.name}</span>
+                      {user?.email ? <span className="block text-xs text-neutral-500 truncate max-w-[150px]" title={user.email}>{user.email}</span> : null}
                     </div>
                     <button onClick={() => { setShowTradeList(true); setShowMenu(false); }}
+                      data-tour="trades-list"
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Trades
                     </button>
                     <button onClick={() => { navigate('/grind-report'); setShowMenu(false); }}
                       className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
                       Grind Report
+                    </button>
+                    <button onClick={() => { navigate('/balance-simulation'); setShowMenu(false); }}
+                      className="w-full text-left px-4 py-2 text-sm text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors">
+                      Balance Simulation
                     </button>
                     {user?.is_admin && (
                       <button
@@ -415,7 +445,7 @@ export default function Dashboard() {
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
             <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
               {createError && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">
                   {createError}
                 </div>
               )}
@@ -451,7 +481,9 @@ export default function Dashboard() {
                 {limitError}
               </div>
             )}
-            <StatCards month={monthStr} accountId={selectedAccountId} accountCapital={accountCapital} refreshKey={statsKey} />
+            <div data-tour="stats">
+              <StatCards month={monthStr} accountId={selectedAccountId} accountCapital={accountCapital} refreshKey={statsKey} />
+            </div>
 
             <WeeklyStats trades={filteredTrades} accountCapital={accountCapital} accountId={selectedAccountId} year={year} month={month} />
 
@@ -497,15 +529,17 @@ export default function Dashboard() {
 
             <QuoteSection />
 
-            <CalendarGrid
-              year={year}
-              month={month}
-              trades={filteredTrades}
-              onDayClick={handleDayClick}
-              onPrevMonth={handlePrevMonth}
-              onNextMonth={handleNextMonth}
-              accountCapital={accountCapital}
-            />
+            <div data-tour="calendar">
+              <CalendarGrid
+                year={year}
+                month={month}
+                trades={filteredTrades}
+                onDayClick={handleDayClick}
+                onPrevMonth={handlePrevMonth}
+                onNextMonth={handleNextMonth}
+                accountCapital={accountCapital}
+              />
+            </div>
 
             <TradeActivityHeatmap
               data={activity}
@@ -520,6 +554,7 @@ export default function Dashboard() {
       {accounts.length > 0 && (
         <button
           onClick={handleOpenAddTrade}
+          data-tour="add-trade"
           className="fixed bottom-4 right-3 sm:bottom-8 sm:right-8 w-11 h-11 sm:w-14 sm:h-14 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-full shadow-lg flex items-center justify-center text-lg sm:text-2xl transition-colors z-40"
         >
           +
@@ -579,6 +614,18 @@ export default function Dashboard() {
             isOpen={showSubscribeModal}
             onClose={() => setShowSubscribeModal(false)}
             blocking={!subLoading && !subscription.subscribed && !subscription.override}
+          />
+
+          <HelpModal
+            topic={showHelp}
+            isOpen={!!showHelp}
+            onClose={() => setShowHelp(null)}
+          />
+
+          <OnboardingTour
+            isOpen={showTour}
+            onComplete={() => { setShowTour(false); localStorage.setItem('trador_tour_complete', 'true'); }}
+            onSkip={() => { setShowTour(false); localStorage.setItem('trador_tour_complete', 'true'); }}
           />
         </>
       )}

@@ -74,7 +74,7 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
             <div key={trade.id} className="bg-neutral-800 rounded-lg border border-neutral-700 p-3 sm:p-4">
               <div className="flex items-start justify-between mb-2 gap-2">
                 <div className="min-w-0">
-                  <span className="text-white font-medium text-sm sm:text-base">{trade.pair}</span>
+                  <span className="text-white font-medium text-sm sm:text-base break-words">{trade.pair}</span>
                   <span className={`ml-1.5 sm:ml-2 text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full`}
                     style={{
                       backgroundColor: trade.result === 'win' ? 'rgb(var(--win-color-rgb) / 0.15)' : 'rgb(var(--loss-color-rgb) / 0.15)',
@@ -96,10 +96,10 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                <div className="min-w-0"><span className="text-neutral-500">Market:</span> <span className="text-neutral-300 capitalize">{trade.market_type}</span></div>
-                <div className="min-w-0"><span className="text-neutral-500">Lot:</span> <span className="text-neutral-300">{trade.lot_size}</span></div>
-                <div className="min-w-0"><span className="text-neutral-500">Risk:</span> <span className="text-neutral-300">{trade.risk_type === 'amount' ? currency.symbol : ''}{trade.risk_value}{trade.risk_type === 'percentage' ? '%' : ''}</span></div>
-                <div className="min-w-0"><span className="text-neutral-500">Profit Target:</span> <span className="text-neutral-300">{trade.target_amount ? formatMoneyCompact(trade.target_amount) : '-'}</span></div>
+                <div className="min-w-0 break-words"><span className="text-neutral-500">Market:</span> <span className="text-neutral-300 capitalize">{trade.market_type}</span></div>
+                <div className="min-w-0 break-words"><span className="text-neutral-500">Lot:</span> <span className="text-neutral-300">{trade.lot_size}</span></div>
+                <div className="min-w-0 break-words"><span className="text-neutral-500">Risk:</span> <span className="text-neutral-300">{trade.risk_type === 'amount' ? currency.symbol : ''}{trade.risk_value}{trade.risk_type === 'percentage' ? '%' : ''}</span></div>
+                <div className="min-w-0 break-words"><span className="text-neutral-500">Profit Target:</span> <span className="text-neutral-300">{trade.target_amount ? formatMoneyCompact(trade.target_amount) : '-'}</span></div>
               </div>
               <div className="mt-1.5 sm:mt-2 flex items-center gap-1.5 sm:gap-2">
                 <span className="text-xs sm:text-sm font-semibold" style={{ color: trade.result === 'win' ? 'rgb(var(--win-color-rgb))' : 'rgb(var(--loss-color-rgb))' }}>
@@ -112,7 +112,7 @@ export default function DayDetail({ date, trades, maxPerDay, onClose, onEdit, on
                 )}
               </div>
               {trade.notes && (
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-neutral-400 border-t border-neutral-700 pt-1.5 sm:pt-2">{trade.notes}</p>
+                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-neutral-400 border-t border-neutral-700 pt-1.5 sm:pt-2 break-words">{trade.notes}</p>
               )}
             </div>
           ))}

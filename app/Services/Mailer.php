@@ -6,6 +6,15 @@ class Mailer
 {
     public static function sendPasswordReset(string $email, string $name, string $link): bool
     {
+        // Try EmailService (SMTP) first
+        $sent = EmailService::sendTemplate($email, 'forgot_password', [
+            'name' => $name,
+            'reset_link' => $link,
+        ]);
+
+        if ($sent) return true;
+
+        // Fallback to PHP mail() if SMTP not configured
         $from = $_ENV['MAIL_FROM'] ?? '';
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
             $appUrl = $_ENV['APP_URL'] ?? 'http://localhost:5173';

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { fmtMoney } from './shared';
+import { useCurrency } from '../../context/CurrencyContext';
 
 function streakText(s, kind) {
   if (!s || !s.length) return '—';
@@ -8,6 +9,7 @@ function streakText(s, kind) {
 
 export default function StatsPanel({ report }) {
   const { stats, log } = report;
+  const { currency } = useCurrency();
   const [lookup, setLookup] = useState('');
   const [lookupResult, setLookupResult] = useState(null);
 
@@ -29,23 +31,27 @@ export default function StatsPanel({ report }) {
     });
   };
 
+  const win = { color: 'var(--win-color)' };
+  const loss = { color: 'var(--loss-color)' };
+  const money = (n) => fmtMoney(n, currency.symbol);
+
   const cards = [
-    ['Win rate', `${stats.win_rate}%`],
-    ['Total trades', stats.total_trades],
-    ['Wins', stats.wins],
-    ['Losses', stats.losses],
-    ['Max drawdown', `${fmtMoney(stats.max_drawdown)} (${stats.max_drawdown_pct}%)`],
-    ['Longest win streak', streakText(stats.longest_win_streak, 'wins')],
-    ['Longest losing streak', streakText(stats.longest_loss_streak, 'losses')],
+    ['Win rate', `${stats.win_rate}%`, stats.win_rate > 0 ? win : undefined],
+    ['Total trades', stats.total_trades, undefined],
+    ['Wins', stats.wins, stats.wins > 0 ? win : undefined],
+    ['Losses', stats.losses, stats.losses > 0 ? loss : undefined],
+    ['Max drawdown', `${money(stats.max_drawdown)} (${stats.max_drawdown_pct}%)`, stats.max_drawdown > 0 ? loss : undefined],
+    ['Longest win streak', streakText(stats.longest_win_streak, 'wins'), stats.longest_win_streak?.length ? win : undefined],
+    ['Longest losing streak', streakText(stats.longest_loss_streak, 'losses'), stats.longest_loss_streak?.length ? loss : undefined],
   ];
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {cards.map(([label, value]) => (
-          <div key={label} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2">
+        {cards.map(([label, value, valueStyle]) => (
+          <div key={label} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 min-w-0">
             <div className="text-[10px] text-neutral-500">{label}</div>
-            <div className="text-sm font-semibold text-white break-words">{value}</div>
+            <div className="text-sm font-semibold text-white break-words" style={valueStyle}>{value}</div>
           </div>
         ))}
         <div className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 col-span-2 sm:col-span-1">
@@ -61,8 +67,8 @@ export default function StatsPanel({ report }) {
           {lookupResult && (
             lookupResult.error
               ? <p className="text-[11px] mt-1" style={{ color: 'var(--loss-color)' }}>{lookupResult.error}</p>
-              : <p className="text-[11px] text-neutral-300 mt-1">
-                  N={lookupResult.n}: {lookupResult.wins}W / {lookupResult.losses}L · balance {fmtMoney(lookupResult.balance)} · net {lookupResult.net >= 0 ? '+' : ''}{fmtMoney(lookupResult.net)}
+              : <p className="text-[11px] text-neutral-300 mt-1 break-words">
+                  N={lookupResult.n}: <span style={win}>{lookupResult.wins}W</span> / <span style={loss}>{lookupResult.losses}L</span> · balance {money(lookupResult.balance)} · net <span style={lookupResult.net >= 0 ? win : loss}>{lookupResult.net >= 0 ? '+' : ''}{money(lookupResult.net)}</span>
                 </p>
           )}
         </div>
@@ -73,7 +79,7 @@ export default function StatsPanel({ report }) {
           <div className="text-[10px] text-neutral-500 mb-1">Longest losing streak per market</div>
           <ul className="text-xs text-neutral-300 space-y-0.5">
             {stats.longest_loss_streak_per_market.map(s => (
-              <li key={s.market}>{s.length} losses, {s.market}, trades {s.from}–{s.to}</li>
+              <li key={s.market} className="break-words" style={loss}>{s.length} losses, {s.market}, trades {s.from}–{s.to}</li>
             ))}
           </ul>
         </div>

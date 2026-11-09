@@ -6,3 +6,8 @@
 /public/assets/
 /cache/
 /config/.env.production
+uploads/email/*
+!uploads/email/.gitkeep
+/database.sqlite
+/config/database.sqlite
+/GIGO-V1-deploy.zip

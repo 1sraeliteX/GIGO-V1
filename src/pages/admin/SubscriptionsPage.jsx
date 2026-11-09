@@ -211,16 +211,16 @@ function UserSubRow({ user, onRefresh }) {
             {expanded
               ? <ChevronDown className="w-4 h-4 text-neutral-500 shrink-0" />
               : <ChevronRight className="w-4 h-4 text-neutral-500 shrink-0" />}
-            <div>
-              <p className="text-sm text-white font-medium">{user.name}</p>
-              <p className="text-xs text-neutral-500">{user.email}</p>
+            <div className="min-w-0">
+              <p className="text-sm text-white font-medium truncate max-w-[180px]">{user.name}</p>
+              <p className="text-xs text-neutral-500 truncate max-w-[180px]">{user.email}</p>
             </div>
           </button>
         </td>
 
         {/* Status */}
         <td className="px-4 py-3">
-          <span className={`text-xs font-medium ${statusClass}`}>{statusLabel}</span>
+          <span className={`text-xs font-medium inline-block max-w-[120px] truncate align-middle ${statusClass}`} title={statusLabel}>{statusLabel}</span>
         </td>
 
         {/* Subscribe modal toggle */}
@@ -265,7 +265,7 @@ function UserSubRow({ user, onRefresh }) {
                         <td className="px-3 py-2 text-neutral-400">{s.days_added}</td>
                         <td className="px-3 py-2 text-neutral-400">{new Date(s.end_date).toLocaleDateString()}</td>
                         <td className="px-3 py-2"><StatusBadge status={s.status} /></td>
-                        <td className="px-3 py-2 text-neutral-600 font-mono truncate max-w-[120px]">{s.paystack_reference}</td>
+                        <td className="px-3 py-2 text-neutral-600 font-mono"><span className="block max-w-[120px] truncate" title={s.paystack_reference}>{s.paystack_reference}</span></td>
                         <td className="px-3 py-2 text-right">
                           {s.status === 'active' && (
                             <button onClick={() => handleRevoke(s.id)} disabled={revoking === s.id}
@@ -319,7 +319,7 @@ export default function SubscriptionsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
       )}
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-x-auto">

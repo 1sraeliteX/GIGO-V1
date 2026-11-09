@@ -5,6 +5,26 @@ require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/config');
 $dotenv->safeLoad();
 
+// The PHP dev server has no Apache rewrite, so serve uploaded email images from here.
+if (PHP_SAPI === 'cli-server') {
+    $uriPath = (string) (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
+    if (strncmp($uriPath, '/uploads/', 9) === 0) {
+        $file = realpath(__DIR__ . $uriPath);
+        $root = realpath(__DIR__ . '/uploads');
+        $types = ['png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'gif' => 'image/gif', 'webp' => 'image/webp'];
+        $ext = $file ? strtolower(pathinfo($file, PATHINFO_EXTENSION)) : '';
+        if ($file && $root && strpos($file, $root . DIRECTORY_SEPARATOR) === 0 && is_file($file) && isset($types[$ext])) {
+            header('Content-Type: ' . $types[$ext]);
+            header('Content-Length: ' . filesize($file));
+            header('X-Content-Type-Options: nosniff');
+            readfile($file);
+            exit;
+        }
+        http_response_code(404);
+        exit;
+    }
+}
+
 $config = require __DIR__ . '/config/config.php';
 $isDev = ($config['app']['env'] ?? 'production') === 'development';
 
@@ -64,6 +84,7 @@ use App\Controllers\SettingsController;
 use App\Controllers\AccountController;
 use App\Controllers\SubscriptionController;
 use App\Controllers\AdminController;
+use App\Controllers\EmailController;
 use App\Controllers\GrindReportController;
 use App\Controllers\SupportController;
 
@@ -122,5 +143,17 @@ $router->post('/api/admin/users/{id}/subscriptions',          [AdminController::
 $router->delete('/api/admin/subscriptions/{id}',              [AdminController::class, 'revokeSubscription']);
 $router->get('/api/admin/plans',                              [AdminController::class, 'getPlans']);
 $router->put('/api/admin/plans/{key}',                        [AdminController::class, 'updatePlan']);
+
+// Admin email settings, templates, and sending
+$router->get('/api/admin/email/settings',                     [EmailController::class, 'getSettings']);
+$router->put('/api/admin/email/settings',                     [EmailController::class, 'updateSettings']);
+$router->post('/api/admin/email/test',                        [EmailController::class, 'testConnection']);
+$router->get('/api/admin/email/templates',                    [EmailController::class, 'listTemplates']);
+$router->put('/api/admin/email/templates/{key}',              [EmailController::class, 'updateTemplate']);
+$router->post('/api/admin/email/send',                        [EmailController::class, 'send']);
+$router->post('/api/admin/email/send-to-user',                [EmailController::class, 'sendToUser']);
+$router->get('/api/admin/email/media',                        [EmailController::class, 'listMedia']);
+$router->post('/api/admin/email/media',                       [EmailController::class, 'uploadMedia']);
+$router->delete('/api/admin/email/media/{name}',              [EmailController::class, 'deleteMedia']);
 
 $router->dispatch(Request::method(), Request::uri());

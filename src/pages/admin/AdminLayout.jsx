@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings, KeyRound, MessageCircle } from 'lucide-react';
+import { Users, CreditCard, LayoutDashboard, LogOut, ShieldCheck, BarChart2, Sun, Moon, Settings, KeyRound, MessageCircle, Mail, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import OnboardingTour, { ADMIN_STEPS } from '../../components/OnboardingTour';
 
 const NAV = [
   { to: '/admin',               label: 'Overview',      icon: BarChart2,  end: true },
@@ -9,6 +11,7 @@ const NAV = [
   { to: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
   { to: '/admin/plans',         label: 'Plans',         icon: Settings },
   { to: '/admin/payments',      label: 'Payments',      icon: KeyRound },
+  { to: '/admin/email',         label: 'Email',         icon: Mail },
   { to: '/admin/support',       label: 'Support Widget', icon: MessageCircle },
 ];
 
@@ -16,6 +19,7 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [showTour, setShowTour] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -34,22 +38,31 @@ export default function AdminLayout() {
               <img src="/logo.png" alt="Tradora" className="w-9 h-9 rounded-full object-cover shrink-0" />
               <span className="text-white font-bold text-sm tracking-wide">Tradora</span>
             </div>
-            <button
-              onClick={toggleTheme}
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors shrink-0"
-            >
-              {theme === 'dark'
-                ? <Sun className="w-3.5 h-3.5" />
-                : <Moon className="w-3.5 h-3.5" />
-              }
-            </button>
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                onClick={() => setShowTour(true)}
+                title="Take a tour"
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-400 hover:bg-neutral-800 transition-colors"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+              >
+                {theme === 'dark'
+                  ? <Sun className="w-3.5 h-3.5" />
+                  : <Moon className="w-3.5 h-3.5" />
+                }
+              </button>
+            </div>
           </div>
           <p className="text-[10px] text-neutral-600 ml-6">Admin Panel</p>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-1" data-tour="admin-nav">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -70,7 +83,7 @@ export default function AdminLayout() {
         </nav>
 
         {/* Footer */}
-        <div className="px-3 py-4 border-t border-neutral-800 space-y-1">
+        <div className="px-3 py-4 border-t border-neutral-800 space-y-1" data-tour="admin-exit">
           <NavLink
             to="/"
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
@@ -95,6 +108,13 @@ export default function AdminLayout() {
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
+
+      <OnboardingTour
+        isOpen={showTour}
+        steps={ADMIN_STEPS}
+        onComplete={() => setShowTour(false)}
+        onSkip={() => setShowTour(false)}
+      />
     </div>
   );
 }

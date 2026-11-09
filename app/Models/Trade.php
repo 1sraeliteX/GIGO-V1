@@ -58,7 +58,7 @@ class Trade
         $db = Database::getInstance();
         $stmt = $db->prepare(
             'INSERT INTO trades (user_id, trade_date, market_type, pair, lot_size, risk_type, risk_value, result, pnl_amount, risk_reward, target_amount, notes, account_id, session, created_at, updated_at)
-             VALUES (:user_id, :trade_date, :market_type, :pair, :lot_size, :risk_type, :risk_value, :result, :pnl_amount, :risk_reward, :target_amount, :notes, :account_id, :session, :now, :now)'
+             VALUES (:user_id, :trade_date, :market_type, :pair, :lot_size, :risk_type, :risk_value, :result, :pnl_amount, :risk_reward, :target_amount, :notes, :account_id, :session, :created_at, :updated_at)'
         );
         $stmt->execute([
             ':user_id' => $userId,
@@ -75,7 +75,8 @@ class Trade
             ':notes' => $data['notes'] ?? null,
             ':account_id' => $data['account_id'] ?? null,
             ':session' => $data['session'] ?? null,
-            ':now' => $now,
+            ':created_at' => $now,
+            ':updated_at' => $now,
         ]);
         return (int) $db->lastInsertId();
     }

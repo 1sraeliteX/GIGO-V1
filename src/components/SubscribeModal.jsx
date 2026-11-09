@@ -74,7 +74,7 @@ export default function SubscribeModal({ isOpen, onClose, blocking = false }) {
 
         <div className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
           )}
 
           {step === 'redirect' ? (

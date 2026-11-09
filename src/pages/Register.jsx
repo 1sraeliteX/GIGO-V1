@@ -4,12 +4,15 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { api } from '../services/api';
+import CurrencyPicker from '../components/CurrencyPicker';
 import TurnstileWidget from '../components/TurnstileWidget';
+import { DEFAULT_CURRENCY } from '../constants/currencies';
 
 export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [currencyCode, setCurrencyCodePref] = useState(() => localStorage.getItem('currency') || DEFAULT_CURRENCY);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const data = await api.auth.register({ name, email, password, 'cf-turnstile-response': turnstileToken });
+      const data = await api.auth.register({ name, email, password, currency: currencyCode, 'cf-turnstile-response': turnstileToken });
       login(data.user, data.token);
       success(`Account created! Welcome, ${data.user.name}.`);
       navigate('/');
@@ -49,7 +52,7 @@ export default function Register() {
           <h1 className="text-2xl font-bold text-white">Tradora</h1>
         </div>
         <h2 className="text-lg text-neutral-400 mb-6">Create your account</h2>
-        {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
+        {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm break-words">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Name</label>
@@ -71,6 +74,13 @@ export default function Register() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm text-neutral-400 mb-1">Currency</label>
+            <CurrencyPicker value={currencyCode} onChange={setCurrencyCodePref} />
+            <p className="text-[11px] text-neutral-500 mt-1.5">
+              Used for your balances and account amounts. Each account can override it later.
+            </p>
           </div>
           <TurnstileWidget ref={turnstileRef} action="signup" onToken={setTurnstileToken} />
           <button type="submit" disabled={loading}

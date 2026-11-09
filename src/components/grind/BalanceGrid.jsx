@@ -1,7 +1,10 @@
 import { cellClass, headClass, resultStyle, fmtMoney } from './shared';
+import { useCurrency } from '../../context/CurrencyContext';
 
 export default function BalanceGrid({ report }) {
   const { markets, stats } = report;
+  const { currency } = useCurrency();
+  const money = (n) => fmtMoney(n, currency.symbol);
   const maxLen = Math.max(0, ...markets.map(m => m.balances.length));
 
   if (markets.length === 0) {
@@ -26,18 +29,18 @@ export default function BalanceGrid({ report }) {
           {markets.map(m => (
             <tr key={m.name}>
               <td className={`${cellClass} sticky left-0 z-10 bg-neutral-900 text-neutral-400`}>{m.row}</td>
-              <td className={`${cellClass} sticky left-[36px] z-10 bg-neutral-900 text-left text-neutral-300`}>{m.name}</td>
+              <td className={`${cellClass} sticky left-[36px] z-10 bg-neutral-900 text-left text-neutral-300`}><span className="block max-w-[180px] truncate" title={m.name}>{m.name}</span></td>
               {Array.from({ length: maxLen }, (_, i) => {
                 const b = m.balances[i];
                 return (
                   <td key={i} className={`${cellClass} min-w-[64px]`} style={b ? resultStyle(b.result) : {}}>
-                    {b ? fmtMoney(b.balance) : ''}
+                    {b ? money(b.balance) : ''}
                   </td>
                 );
               })}
-              <td className={`${cellClass} text-neutral-200`}>{fmtMoney(m.end_balance)}</td>
+              <td className={`${cellClass} text-neutral-200`}>{money(m.end_balance)}</td>
               <td className={cellClass} style={{ color: m.net_pnl >= 0 ? 'var(--win-color)' : 'var(--loss-color)' }}>
-                {m.net_pnl >= 0 ? '+' : ''}{fmtMoney(m.net_pnl)}
+                {m.net_pnl >= 0 ? '+' : ''}{money(m.net_pnl)}
               </td>
             </tr>
           ))}
@@ -47,11 +50,11 @@ export default function BalanceGrid({ report }) {
             <td className={`${cellClass} sticky left-0 z-30 bg-neutral-900`}></td>
             <td className={`${cellClass} sticky left-[36px] z-30 bg-neutral-900 text-left text-neutral-300`}>Summary</td>
             <td className={`${cellClass} text-neutral-300`} colSpan={maxLen}>
-              Final {fmtMoney(stats.final_balance)} · Peak {fmtMoney(stats.peak_balance)} · Lowest {fmtMoney(stats.lowest_balance)}
+              Final {money(stats.final_balance)} · Peak {money(stats.peak_balance)} · Lowest {money(stats.lowest_balance)}
             </td>
-            <td className={`${cellClass} text-neutral-200`}>{fmtMoney(stats.final_balance)}</td>
+            <td className={`${cellClass} text-neutral-200`}>{money(stats.final_balance)}</td>
             <td className={cellClass} style={{ color: stats.net_profit >= 0 ? 'var(--win-color)' : 'var(--loss-color)' }}>
-              {stats.net_profit >= 0 ? '+' : ''}{fmtMoney(stats.net_profit)}
+              {stats.net_profit >= 0 ? '+' : ''}{money(stats.net_profit)}
             </td>
           </tr>
         </tfoot>

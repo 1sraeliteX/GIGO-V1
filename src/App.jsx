@@ -6,8 +6,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import GrindReport from './pages/GrindReport';
+import BalanceSimulation from './pages/BalanceSimulation';
 import SubscribeCallback from './pages/SubscribeCallback';
 import AdminLayout from './pages/admin/AdminLayout';
+import EmailPage from './pages/admin/EmailPage';
 import AdminOverviewPage from './pages/admin/AdminOverviewPage';
 import UsersPage from './pages/admin/UsersPage';
 import SubscriptionsPage from './pages/admin/SubscriptionsPage';
@@ -43,6 +45,7 @@ export default function App() {
         <Route path="/reset-password"  element={<PublicRoute><ResetPassword /></PublicRoute>} />
         <Route path="/"         element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/grind-report" element={<ProtectedRoute><GrindReport /></ProtectedRoute>} />
+        <Route path="/balance-simulation" element={<ProtectedRoute><BalanceSimulation /></ProtectedRoute>} />
         <Route path="/subscribe/callback" element={<ProtectedRoute><SubscribeCallback /></ProtectedRoute>} />
 
         {/* Admin section */}
@@ -56,6 +59,7 @@ export default function App() {
           <Route path="plans"         element={<PlansPage />} />
           <Route path="payments"      element={<PaymentsPage />} />
           <Route path="support"       element={<SupportPage />} />
+          <Route path="email"         element={<EmailPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

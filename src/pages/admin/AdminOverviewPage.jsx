@@ -44,7 +44,7 @@ export default function AdminOverviewPage() {
       <p className="text-sm text-neutral-500 mb-8">Platform summary at a glance.</p>
 
       {error && (
-        <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">
+        <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">
           {error}
         </div>
       )}
@@ -56,7 +56,7 @@ export default function AdminOverviewPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4" data-tour="admin-stats">
           <StatCard icon={Users}       label="Total Users"          value={stats?.total_users}         color="blue" />
           <StatCard icon={CreditCard}  label="Active Subscribers"   value={stats?.active_subscribers}  color="emerald" />
           <StatCard icon={ToggleRight} label="Subscribed Users"   value={stats?.override_users}      color="amber" />

@@ -2,12 +2,15 @@ import { useEffect, useRef } from 'react';
 import { Chart, LineController, LineElement, PointElement, LinearScale, Tooltip, Filler, Decimation } from 'chart.js';
 import { useTheme } from '../../context/ThemeContext';
 import { fmtMoney } from './shared';
+import { useCurrency } from '../../context/CurrencyContext';
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, Tooltip, Filler, Decimation);
 
 export default function BalanceChart({ report }) {
   const canvasRef = useRef(null);
   const { theme } = useTheme();
+  const { currency, currencyCode } = useCurrency();
+  const money = (n) => fmtMoney(n, currency.symbol);
   const { log, stats, settings } = report;
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function BalanceChart({ report }) {
               title: (items) => `Trade ${items[0].raw.x}`,
               label: (item) => {
                 const e = log[item.raw.x];
-                const parts = [`Balance: ${fmtMoney(e.balance)}`];
+                const parts = [`Balance: ${money(e.balance)}`];
                 if (e.market) parts.unshift(`${e.market} · ${e.result}`);
                 if (e.n === stats.peak_trade && e.n > 0) parts.push('Peak');
                 if (e.n === stats.drawdown_trough_trade && e.n > 0) parts.push('Max drawdown trough');
@@ -74,7 +77,7 @@ export default function BalanceChart({ report }) {
             grid: { color: gridColor },
           },
           y: {
-            title: { display: true, text: 'Balance ($)', color: textColor },
+            title: { display: true, text: `Balance (${currency.symbol})`, color: textColor },
             ticks: { color: textColor },
             grid: { color: gridColor },
           },
@@ -82,13 +85,20 @@ export default function BalanceChart({ report }) {
       },
     });
     return () => chart.destroy();
-  }, [report, theme]);
+  }, [report, theme, currencyCode, currency.symbol]);
 
-  const title = `Account Balance over ${stats.total_trades} Trades (${fmtMoney(settings.start_balance)} start, +${fmtMoney(settings.win_amount)} W / -${fmtMoney(settings.loss_amount)} L)`;
+  const title = (
+    <>
+      Account Balance over {stats.total_trades} Trades ({money(settings.start_balance)} start,{' '}
+      <span style={{ color: 'var(--win-color)' }}>+{money(settings.win_amount)} W</span>
+      {' / '}
+      <span style={{ color: 'var(--loss-color)' }}>-{money(settings.loss_amount)} L</span>)
+    </>
+  );
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <h3 className="text-sm font-semibold text-white break-words">{title}</h3>
       {settings.pnl_mode === 'actual' && (
         <p className="text-[11px] text-neutral-500">Actual P/L mode — recorded amounts are used instead of fixed W/L amounts.</p>
       )}
@@ -98,7 +108,7 @@ export default function BalanceChart({ report }) {
       <p className="text-[11px] text-neutral-500">
         <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1" />Peak / drawdown start
         <span className="inline-block w-2 h-2 rounded-full bg-red-500 ml-3 mr-1" />Largest drawdown trough
-        {stats.max_drawdown > 0 && ` — max drawdown ${fmtMoney(stats.max_drawdown)} (${stats.max_drawdown_pct}%), trades ${stats.drawdown_peak_trade}–${stats.drawdown_trough_trade}`}
+        {stats.max_drawdown > 0 && ` — max drawdown ${money(stats.max_drawdown)} (${stats.max_drawdown_pct}%), trades ${stats.drawdown_peak_trade}–${stats.drawdown_trough_trade}`}
       </p>
     </div>
   );

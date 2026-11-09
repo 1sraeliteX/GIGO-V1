@@ -8,6 +8,7 @@ import { useTimezone } from '../context/TimezoneContext';
 import { useToast } from '../context/ToastContext';
 import { SESSIONS, getSessionLocalTime, TIMEZONE_OPTIONS } from '../constants/sessions';
 import CurrencyPicker from './CurrencyPicker';
+import { getCurrency } from '../constants/currencies';
 
 const WIN_PRESETS = ['#10b981', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'];
 const LOSS_PRESETS = ['#ef4444', '#f97316', '#e11d48', '#ec4899', '#a855f7', '#64748b'];
@@ -28,6 +29,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
   const [formName, setFormName] = useState('');
   const [formCapital, setFormCapital] = useState('');
   const [formLimit, setFormLimit] = useState('');
+  const [formCurrency, setFormCurrency] = useState(currency.code);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
     setFormName('');
     setFormCapital('');
     setFormLimit('');
+    setFormCurrency(currency.code);
   };
 
   const handleAddAccount = async () => {
@@ -63,6 +66,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
       const payload = {
         name: formName.trim(),
         capital: parseFloat(formCapital) || 0,
+        currency: formCurrency,
       };
       const parsedLimit = formLimit === '' ? null : parseInt(formLimit, 10);
       if (parsedLimit !== null && (isNaN(parsedLimit) || parsedLimit < 1)) {
@@ -109,6 +113,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
     setFormName(account.name);
     setFormCapital(String(account.capital || ''));
     setFormLimit(account.max_trades_per_day != null ? String(account.max_trades_per_day) : '');
+    setFormCurrency(account.currency || currency.code);
     setShowForm(true);
   };
 
@@ -127,7 +132,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
 
         <div className="p-6 space-y-6">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
           )}
           {message && (
             <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg p-3 text-sm">{message}</div>
@@ -140,8 +145,8 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                   <User className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+                  <p className="text-sm font-medium text-white truncate" title={user.name}>{user.name}</p>
+                  <p className="text-xs text-neutral-500 truncate" title={user.email}>{user.email}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +180,7 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-neutral-500 mb-1">Capital ({currency.symbol})</label>
+                    <label className="block text-xs text-neutral-500 mb-1">Capital</label>
                     <input
                       type="text" inputMode="decimal" value={formCapital} onChange={(e) => setFormCapital(e.target.value)}
                       placeholder="0.00"
@@ -183,17 +188,21 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-neutral-500 mb-1">Max Trades / Day</label>
-                    <input
-                      type="text" inputMode="numeric" value={formLimit} onChange={(e) => setFormLimit(e.target.value)}
-                      placeholder="No limit"
-                      className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 placeholder:text-neutral-600"
-                    />
+                    <label className="block text-xs text-neutral-500 mb-1">Currency</label>
+                    <CurrencyPicker value={formCurrency} onChange={setFormCurrency} />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-500 mb-1">Max Trades / Day</label>
+                  <input
+                    type="text" inputMode="numeric" value={formLimit} onChange={(e) => setFormLimit(e.target.value)}
+                    placeholder="No limit"
+                    className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 placeholder:text-neutral-600"
+                  />
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={resetForm}
-                    className="flex-1 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg py-2 text-sm font-medium transition-colors">
+                    className="flex-1 bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2 text-sm font-medium transition-colors">
                     Cancel
                   </button>
                   <button onClick={handleAddAccount}
@@ -220,12 +229,12 @@ export default function SettingsModal({ isOpen, onClose, onAccountsChange }) {
                       <div className="w-7 h-7 rounded-lg bg-emerald-600/10 flex items-center justify-center shrink-0">
                         <Hash className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
-                      <span className="text-sm font-medium text-white">{a.name}</span>
+                      <span className="text-sm font-medium text-white min-w-0 truncate" title={a.name}>{a.name}</span>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 ml-9">
+                    <div className="flex items-center gap-3 mt-1 ml-9 flex-wrap">
                       {a.capital > 0 && (
-                        <span className="text-xs text-neutral-400">
-                          {currency.symbol}{Number(a.capital).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        <span className="text-xs text-neutral-400 break-words">
+                          {getCurrency(a.currency || currencyCode).symbol}{Number(a.capital).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </span>
                       )}
                       {a.max_trades_per_day != null && (

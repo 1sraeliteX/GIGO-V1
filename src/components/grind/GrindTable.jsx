@@ -27,7 +27,7 @@ export default function GrindTable({ report }) {
           {markets.map(m => (
             <tr key={m.name}>
               <td className={`${cellClass} sticky left-0 z-10 bg-neutral-900 text-neutral-400`}>{m.row}</td>
-              <td className={`${cellClass} sticky left-[36px] z-10 bg-neutral-900 text-left text-neutral-300`}>{m.name}</td>
+              <td className={`${cellClass} sticky left-[36px] z-10 bg-neutral-900 text-left text-neutral-300`}><span className="block max-w-[180px] truncate" title={m.name}>{m.name}</span></td>
               {Array.from({ length: maxLen }, (_, i) => {
                 const t = m.trades[i];
                 return (
@@ -36,8 +36,8 @@ export default function GrindTable({ report }) {
                   </td>
                 );
               })}
-              <td className={`${cellClass} text-neutral-300`}>{m.wins}</td>
-              <td className={`${cellClass} text-neutral-300`}>{m.losses}</td>
+              <td className={cellClass} style={{ color: m.wins > 0 ? 'var(--win-color)' : undefined }}>{m.wins}</td>
+              <td className={cellClass} style={{ color: m.losses > 0 ? 'var(--loss-color)' : undefined }}>{m.losses}</td>
               <td className={`${cellClass} text-neutral-300`}>{m.win_pct}%</td>
             </tr>
           ))}

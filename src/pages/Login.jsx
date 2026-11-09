@@ -10,6 +10,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
@@ -28,7 +29,7 @@ export default function Login() {
     setLoading(true);
     try {
       const data = await api.auth.login({ email, password, 'cf-turnstile-response': turnstileToken });
-      login(data.user, data.token);
+      login(data.user, data.token, remember);
       success(`Welcome back, ${data.user.name}!`);
       navigate('/');
     } catch (err) {
@@ -48,7 +49,7 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-white">Tradora</h1>
         </div>
         <h2 className="text-lg text-neutral-400 mb-6">Sign in to your account</h2>
-        {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
+        {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm break-words">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Email</label>
@@ -70,6 +71,16 @@ export default function Login() {
             </div>
           </div>
           <TurnstileWidget ref={turnstileRef} action="login" onToken={setTurnstileToken} />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="remember"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+              className="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-emerald-500 focus:ring-emerald-500/30 cursor-pointer"
+            />
+            <label htmlFor="remember" className="text-sm text-neutral-400 cursor-pointer select-none">Remember me</label>
+          </div>
           <button type="submit" disabled={loading}
             className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50">
             {loading ? 'Signing in...' : 'Sign In'}

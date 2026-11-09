@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, X } from 'lucide-react';
 import { api } from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
+import { CURRENCIES } from '../constants/currencies';
 
 export default function AccountSwitcher({ accounts, selectedId, onSelect, onAccountsChange }) {
   const { currency, formatMoney } = useCurrency();
@@ -9,6 +10,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
   const [formCapital, setFormCapital] = useState('');
+  const [formCurrency, setFormCurrency] = useState(currency.code);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const ref = useRef(null);
@@ -27,6 +29,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
     setShowForm(false);
     setFormName('');
     setFormCapital('');
+    setFormCurrency(currency.code);
     setCreateError('');
   };
 
@@ -35,7 +38,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
     if (!formName.trim()) return;
     setCreating(true);
     try {
-      const data = await api.accounts.create({ name: formName.trim(), capital: parseFloat(formCapital) || 0 });
+      const data = await api.accounts.create({ name: formName.trim(), capital: parseFloat(formCapital) || 0, currency: formCurrency });
       resetForm();
       onAccountsChange?.();
       onSelect(data.id);
@@ -57,7 +60,7 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg py-1 min-w-[160px] sm:min-w-[200px] shadow-lg z-50">
+        <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-1 bg-neutral-800 border border-neutral-700 rounded-lg py-1 w-[220px] sm:w-[260px] max-w-[calc(100vw-1.5rem)] shadow-lg z-50">
           <button
             onClick={() => { onSelect(null); setOpen(false); }}
             className={`w-full text-left px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm transition-colors ${
@@ -67,22 +70,25 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
             All Accounts
           </button>
           {accounts.length > 0 && <div className="border-t border-neutral-700 mx-2" />}
-          {accounts.map((a) => (
+          {accounts.map((a) => {
+            const accCur = CURRENCIES.find((c) => c.code === a.currency) || currency;
+            return (
             <button
               key={a.id}
               onClick={() => { onSelect(a.id); setOpen(false); resetForm(); }}
-              className={`w-full text-left px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm transition-colors ${
+              className={`w-full flex items-center justify-between gap-2 text-left px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm transition-colors ${
                 selectedId === a.id ? 'text-emerald-400' : 'text-neutral-400 hover:text-white'
               }`}
             >
               <span className="truncate">{a.name}</span>
               {a.capital > 0 && (
-                <span className="text-[10px] sm:text-xs text-neutral-500 ml-1 sm:ml-2">
-                  {formatMoney(a.capital)}
+                <span className="text-[10px] sm:text-xs text-neutral-500 shrink-0">
+                  {accCur.symbol}{Number(a.capital).toLocaleString('en-US')}
                 </span>
               )}
             </button>
-          ))}
+            );
+          })}
           <div className="border-t border-neutral-700 mx-2" />
           {!showForm ? (
             <button
@@ -103,11 +109,17 @@ export default function AccountSwitcher({ accounts, selectedId, onSelect, onAcco
                   placeholder="Name" autoFocus
                   className="w-full bg-neutral-900 border border-neutral-700 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs text-white focus:outline-none focus:border-emerald-500" />
                 {createError && (
-                  <p className="text-[10px] text-red-400">{createError}</p>
+                  <p className="text-[10px] text-red-400 break-words">{createError}</p>
                 )}
                 <input type="text" inputMode="decimal" value={formCapital} onChange={(e) => setFormCapital(e.target.value)}
                   placeholder={`Capital (${currency.symbol})`}
                   className="w-full bg-neutral-900 border border-neutral-700 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs text-white focus:outline-none focus:border-emerald-500" />
+                <select value={formCurrency} onChange={(e) => setFormCurrency(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded px-1.5 sm:px-2 py-1 sm:py-1.5 text-[10px] sm:text-xs text-white focus:outline-none focus:border-emerald-500">
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                  ))}
+                </select>
                 <button onClick={handleCreate} disabled={creating}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium transition-colors disabled:opacity-50">
                   {creating ? 'Creating...' : 'Create'}

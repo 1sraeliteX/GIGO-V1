@@ -413,7 +413,11 @@ class AdminController
                 "SELECT id, plan_key, label, days, amount_usd, ngn_rate, description, payment_link, is_active
                  FROM plan_settings ORDER BY days ASC"
             );
-            echo json_encode(['plans' => $stmt->fetchAll()]);
+            $plans = $stmt->fetchAll();
+            foreach ($plans as &$p) {
+                $p['is_active'] = (int) $p['is_active'];
+            }
+            echo json_encode(['plans' => $plans]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to fetch plans: ' . $e->getMessage()]);
@@ -491,7 +495,8 @@ class AdminController
                 return;
             }
 
-            $fields[] = "updated_at = datetime('now')";
+            $nowFunc = $db->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'mysql' ? 'NOW()' : "datetime('now')";
+            $fields[] = "updated_at = {$nowFunc}";
             $db->prepare('UPDATE plan_settings SET ' . implode(', ', $fields) . ' WHERE plan_key = :key')
                ->execute($params);
 
@@ -501,7 +506,9 @@ class AdminController
             );
             $row->execute([':key' => $key]);
 
-            echo json_encode(['message' => 'Plan updated', 'plan' => $row->fetch()]);
+            $plan = $row->fetch();
+            $plan['is_active'] = (int) $plan['is_active'];
+            echo json_encode(['message' => 'Plan updated', 'plan' => $plan]);
         } catch (\Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to update plan: ' . $e->getMessage()]);

@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { activeCurrencySymbol } from '../constants/currencies';
 
 function csvEscape(val) {
   const s = String(val);
@@ -112,7 +113,7 @@ export function exportToPDF(trades, { from, to, label, accountCapital }) {
 
       if (pnl !== 0) {
         const pct = accountCapital > 0 ? (pnl / accountCapital) * 100 : 0;
-        const text = pct !== 0 ? `${pct > 0 ? '+' : ''}${Math.round(pct * 10) / 10}%` : `$${Math.round(pnl)}`;
+        const text = pct !== 0 ? `${pct > 0 ? '+' : ''}${Math.round(pct * 10) / 10}%` : `${activeCurrencySymbol()}${Math.round(pnl)}`;
         doc.setFontSize(4);
         doc.text(text, cx + 1, cy + cellH - 1);
       }
@@ -157,9 +158,9 @@ export function exportToPDF(trades, { from, to, label, accountCapital }) {
   // --- Summary boxes ---
   const boxW = (contentW - 6) / 3;
   const summary = [
-    { label: 'Total P&L', value: `${totalPnl >= 0 ? '+' : ''}$${Math.abs(totalPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, color: totalPnl >= 0 ? [5, 150, 105] : [220, 38, 38] },
-    { label: 'Best Trade', value: trades.length > 0 ? `$${Math.max(...trades.map(t => parseFloat(t.pnl_amount))).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-', color: [5, 150, 105] },
-    { label: 'Worst Trade', value: trades.length > 0 ? `$${Math.min(...trades.map(t => parseFloat(t.pnl_amount))).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-', color: [220, 38, 38] },
+    { label: 'Total P&L', value: `${totalPnl >= 0 ? '+' : ''}${activeCurrencySymbol()}${Math.abs(totalPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, color: totalPnl >= 0 ? [5, 150, 105] : [220, 38, 38] },
+    { label: 'Best Trade', value: trades.length > 0 ? `${activeCurrencySymbol()}${Math.max(...trades.map(t => parseFloat(t.pnl_amount))).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-', color: [5, 150, 105] },
+    { label: 'Worst Trade', value: trades.length > 0 ? `${activeCurrencySymbol()}${Math.min(...trades.map(t => parseFloat(t.pnl_amount))).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-', color: [220, 38, 38] },
   ];
 
   summary.forEach((item, i) => {
@@ -251,7 +252,7 @@ export function exportToPDF(trades, { from, to, label, accountCapital }) {
         t.market_type,
         String(t.lot_size),
         t.result,
-        `${parseFloat(t.pnl_amount) >= 0 ? '+' : ''}$${parseFloat(t.pnl_amount).toFixed(2)}`,
+        `${parseFloat(t.pnl_amount) >= 0 ? '+' : ''}${activeCurrencySymbol()}${parseFloat(t.pnl_amount).toFixed(2)}`,
         t.risk_reward || '',
         (t.notes || '').substring(0, 40),
       ];

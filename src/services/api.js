@@ -1,8 +1,9 @@
 const API_BASE = '/api';
 
 async function request(endpoint, options = {}) {
-  const token = localStorage.getItem('token');
-  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const isForm = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = { ...(isForm ? {} : { 'Content-Type': 'application/json' }), ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   let res;
@@ -114,6 +115,22 @@ export const api = {
     support: {
       get: () => request('/admin/support-settings'),
       update: (body) => request('/admin/support-settings', { method: 'PUT', body: JSON.stringify(body) }),
+    },
+    email: {
+      getSettings: () => request('/admin/email/settings'),
+      updateSettings: (body) => request('/admin/email/settings', { method: 'PUT', body: JSON.stringify(body) }),
+      testConnection: (body) => request('/admin/email/test', { method: 'POST', body: JSON.stringify(body) }),
+      listTemplates: () => request('/admin/email/templates'),
+      updateTemplate: (key, body) => request(`/admin/email/templates/${key}`, { method: 'PUT', body: JSON.stringify(body) }),
+      send: (body) => request('/admin/email/send', { method: 'POST', body: JSON.stringify(body) }),
+      sendToUser: (body) => request('/admin/email/send-to-user', { method: 'POST', body: JSON.stringify(body) }),
+      listMedia: () => request('/admin/email/media'),
+      uploadMedia: (file) => {
+        const form = new FormData();
+        form.append('file', file);
+        return request('/admin/email/media', { method: 'POST', body: form });
+      },
+      deleteMedia: (name) => request(`/admin/email/media/${encodeURIComponent(name)}`, { method: 'DELETE' }),
     },
   },
 };

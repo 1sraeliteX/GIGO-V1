@@ -1,4 +1,6 @@
 RewriteEngine On
+Options -Indexes
+DirectoryIndex index.html
 
 # If the requested file or directory exists, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]

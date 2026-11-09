@@ -33,14 +33,14 @@ function ConfirmDeleteModal({ user, onConfirm, onCancel, loading }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl w-full max-w-sm mx-4 p-6">
         <h3 className="text-base font-semibold text-white mb-2">Delete user?</h3>
-        <p className="text-sm text-neutral-400 mb-6">
+        <p className="text-sm text-neutral-400 mb-6 break-words">
           This will permanently delete <span className="text-white font-medium">{user.name}</span> ({user.email}) and all their data. This cannot be undone.
         </p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-sm transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2 rounded-lg bg-transparent border border-red-500/50 text-red-400 hover:bg-red-500/10 text-sm transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -105,7 +105,7 @@ function EditUserModal({ user, onSave, onCancel, currentAdminId }) {
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
           )}
 
           <div>
@@ -158,7 +158,7 @@ function EditUserModal({ user, onSave, onCancel, currentAdminId }) {
           )}
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onCancel} className="flex-1 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-sm transition-colors">
+            <button type="button" onClick={onCancel} className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-[#fff] text-sm transition-colors">
               Cancel
             </button>
             <button
@@ -332,7 +332,7 @@ export default function UsersPage() {
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
       )}
 
       {/* Table */}

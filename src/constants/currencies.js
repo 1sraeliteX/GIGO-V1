@@ -76,3 +76,15 @@ export const CURRENCIES = [
 ];
 
 export const DEFAULT_CURRENCY = 'USD';
+
+export function getCurrency(code) {
+  return CURRENCIES.find((c) => c.code === code)
+    || CURRENCIES.find((c) => c.code === DEFAULT_CURRENCY)
+    || CURRENCIES[0];
+}
+
+// For plain modules (CSV/PDF exporters) that format money outside React and
+// therefore cannot call useCurrency(); they read the same key the provider writes.
+export function activeCurrencySymbol() {
+  return getCurrency(localStorage.getItem('currency') || DEFAULT_CURRENCY).symbol;
+}

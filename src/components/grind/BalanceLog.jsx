@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { fmtMoney, resultStyle } from './shared';
+import { useCurrency } from '../../context/CurrencyContext';
 import { exportGrindCSV, exportGrindExcel } from '../../services/grindExport';
 
 const PAGE_SIZE = 100;
@@ -8,6 +9,7 @@ export default function BalanceLog({ report }) {
   const [chronological, setChronological] = useState(false);
   const [page, setPage] = useState(0);
   const { log, stats } = report;
+  const { currency } = useCurrency();
 
   const entries = useMemo(() => {
     if (!chronological) return log;
@@ -18,23 +20,27 @@ export default function BalanceLog({ report }) {
   const safePage = Math.min(page, pages - 1);
   const slice = entries.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
+  const win = { color: 'var(--win-color)' };
+  const loss = { color: 'var(--loss-color)' };
+  const money = (n) => fmtMoney(n, currency.symbol);
+
   const summary = [
-    ['Final balance', fmtMoney(stats.final_balance)],
-    ['Net profit', `${stats.net_profit >= 0 ? '+' : ''}${fmtMoney(stats.net_profit)}`],
-    ['Total return', `${stats.total_return_pct}%`],
-    ['Peak balance', fmtMoney(stats.peak_balance)],
-    ['Lowest balance', fmtMoney(stats.lowest_balance)],
-    ['Wins', stats.wins],
-    ['Losses', stats.losses],
+    ['Final balance', money(stats.final_balance), undefined],
+    ['Net profit', `${stats.net_profit >= 0 ? '+' : ''}${money(stats.net_profit)}`, stats.net_profit >= 0 ? win : loss],
+    ['Total return', `${stats.total_return_pct}%`, stats.total_return_pct >= 0 ? win : loss],
+    ['Peak balance', money(stats.peak_balance), undefined],
+    ['Lowest balance', money(stats.lowest_balance), undefined],
+    ['Wins', stats.wins, stats.wins > 0 ? win : undefined],
+    ['Losses', stats.losses, stats.losses > 0 ? loss : undefined],
   ];
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-        {summary.map(([label, value]) => (
-          <div key={label} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2">
+        {summary.map(([label, value, valueStyle]) => (
+          <div key={label} className="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 min-w-0">
             <div className="text-[10px] text-neutral-500">{label}</div>
-            <div className="text-sm font-semibold text-white">{value}</div>
+            <div className="text-sm font-semibold text-white break-words" style={valueStyle}>{value}</div>
           </div>
         ))}
       </div>
@@ -60,7 +66,7 @@ export default function BalanceLog({ report }) {
         <table className="w-full border-collapse whitespace-nowrap text-xs">
           <thead className="sticky top-0 z-10">
             <tr className="bg-neutral-900 text-neutral-400">
-              {['Trade #', 'Market row', 'Column', 'Result', 'P/L ($)', 'Balance ($)', 'Date'].map(h => (
+              {['Trade #', 'Market row', 'Column', 'Result', `P/L (${currency.symbol})`, `Balance (${currency.symbol})`, 'Date'].map(h => (
                 <th key={h} className="px-3 py-2 text-left font-medium border-b border-neutral-800">{h}</th>
               ))}
             </tr>
@@ -75,9 +81,9 @@ export default function BalanceLog({ report }) {
                   {e.result ? <span className="inline-block w-6 text-center rounded font-semibold" style={resultStyle(e.result)}>{e.result}</span> : ''}
                 </td>
                 <td className="px-3 py-1.5" style={{ color: e.pnl > 0 ? 'var(--win-color)' : e.pnl < 0 ? 'var(--loss-color)' : undefined }}>
-                  {e.n === 0 ? '—' : `${e.pnl >= 0 ? '+' : ''}${fmtMoney(e.pnl)}`}
+                  {e.n === 0 ? '—' : `${e.pnl >= 0 ? '+' : ''}${money(e.pnl)}`}
                 </td>
-                <td className="px-3 py-1.5 text-white">{fmtMoney(e.balance)}</td>
+                <td className="px-3 py-1.5 text-white">{money(e.balance)}</td>
                 <td className="px-3 py-1.5 text-neutral-500">{e.date ?? '—'}</td>
               </tr>
             ))}

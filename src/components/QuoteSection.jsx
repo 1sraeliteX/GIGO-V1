@@ -59,7 +59,7 @@ export default function QuoteSection() {
             </button>
               <button
                 onClick={handleCancel}
-                className="px-4 py-1.5 text-sm font-medium text-neutral-500 hover:text-white transition-colors"
+                className="px-4 py-1.5 text-sm font-medium text-red-400 hover:text-red-300 transition-colors"
               >
                 Cancel
               </button>
@@ -75,9 +75,9 @@ export default function QuoteSection() {
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0 text-center">
+          <div className="flex-1 min-w-0 text-center break-words">
             {quote ? (
-              <p className="text-sm sm:text-base text-white italic leading-relaxed">&ldquo;{quote}&rdquo;</p>
+              <p className="text-sm sm:text-base text-white italic leading-relaxed break-words">&ldquo;{quote}&rdquo;</p>
             ) : (
               <p className="text-sm text-neutral-500 italic">Add a daily reminder&hellip;</p>
             )}

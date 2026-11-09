@@ -76,7 +76,7 @@ export function ToastProvider({ children }) {
               `}
             >
               <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${ICON_STYLES[t.type]}`} />
-              <p className="text-sm flex-1 leading-snug">{t.message}</p>
+              <p className="text-sm flex-1 leading-snug min-w-0 break-words">{t.message}</p>
               <button
                 onClick={() => dismiss(t.id)}
                 className="shrink-0 opacity-50 hover:opacity-100 transition-opacity ml-1"

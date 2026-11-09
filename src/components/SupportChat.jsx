@@ -175,7 +175,7 @@ export default function SupportChat() {
 
                 <div className={`max-w-[85%] ${message.from === 'user' ? 'items-end' : ''} flex flex-col`}>
                   <div
-                    className={`px-3 py-2 text-sm whitespace-pre-line ${
+                    className={`px-3 py-2 text-sm whitespace-pre-line break-words ${
                       message.from === 'user'
                         ? 'bg-emerald-600 text-[#fff] rounded-2xl rounded-tr-sm'
                         : 'bg-neutral-800 text-neutral-300 border border-neutral-700/60 rounded-2xl rounded-tl-sm'

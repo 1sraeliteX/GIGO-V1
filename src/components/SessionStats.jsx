@@ -61,7 +61,7 @@ export default function SessionStats({ trades }) {
         {stats.rows.map((s) => (
           <div
             key={s.key}
-            className="rounded-lg p-3 border"
+            className="rounded-lg p-3 border min-w-0"
             style={{
               backgroundColor: s.color + '12',
               borderColor: s.color + '40',
@@ -72,31 +72,31 @@ export default function SessionStats({ trades }) {
               <span className="text-xs font-semibold text-white truncate">{s.label}</span>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-500">Trades</span>
-                <span className="text-neutral-300 font-medium">{s.trades}</span>
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-neutral-500 shrink-0">Trades</span>
+                <span className="text-neutral-300 font-medium min-w-0 text-right break-words">{s.trades}</span>
               </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-500">Win Rate</span>
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-neutral-500 shrink-0">Win Rate</span>
                 <span
-                  className="font-medium"
+                  className="font-medium min-w-0 text-right break-words"
                   style={{ color: s.winRate !== null && s.winRate >= 50 ? 'rgb(var(--win-color-rgb))' : 'rgb(var(--loss-color-rgb))' }}
                 >
                   {s.winRate !== null ? `${s.winRate}%` : '—'}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-500">P&L</span>
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-neutral-500 shrink-0">P&L</span>
                 <span
-                  className="font-medium tabular-nums"
+                  className="font-medium tabular-nums min-w-0 text-right break-words"
                   style={{ color: s.pnl >= 0 ? 'rgb(var(--win-color-rgb))' : 'rgb(var(--loss-color-rgb))' }}
                 >
                   {s.pnl >= 0 ? '+' : ''}{formatMoney(s.pnl)}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-neutral-500">W / L</span>
-                <span className="text-neutral-400">{s.wins} / {s.losses}</span>
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-neutral-500 shrink-0">W / L</span>
+                <span className="text-neutral-400 min-w-0 text-right break-words">{s.wins} / {s.losses}</span>
               </div>
             </div>
           </div>

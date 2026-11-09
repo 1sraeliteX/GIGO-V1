@@ -45,14 +45,14 @@ export default function ForgotPassword() {
           <div className="text-center py-4">
             <MailCheck className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
             <p className="text-white font-medium mb-2">Check your email</p>
-            <p className="text-sm text-neutral-400">
-              If an account exists for <span className="text-white">{email}</span>, a reset link has been sent.
+            <p className="text-sm text-neutral-400 break-words">
+              If an account exists for <span className="text-white break-all">{email}</span>, a reset link has been sent.
               The link expires in 1 hour.
             </p>
           </div>
         ) : (
           <>
-            {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm">{error}</div>}
+            {error && <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-4 text-sm break-words">{error}</div>}
             <p className="text-sm text-neutral-400 mb-4">
               Enter the email address on your account and we'll send you a link to choose a new password.
             </p>

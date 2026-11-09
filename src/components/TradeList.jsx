@@ -82,7 +82,7 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDuplicate
                     <div key={trade.id} className="bg-neutral-800 rounded-lg border border-neutral-700 p-2 sm:p-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <span className="text-white font-medium text-xs sm:text-sm">{trade.pair}</span>
+                          <span className="text-white font-medium text-xs sm:text-sm break-words">{trade.pair}</span>
                           <span className={`text-[10px] sm:text-xs font-medium px-1 sm:px-1.5 py-0.5 rounded`}
                             style={{
                               backgroundColor: trade.result === 'win' ? 'rgb(var(--win-color-rgb) / 0.15)' : 'rgb(var(--loss-color-rgb) / 0.15)',
@@ -92,9 +92,9 @@ export default function TradeList({ isOpen, onClose, trades, onEdit, onDuplicate
                           </span>
                           <span className="text-neutral-500 text-[10px] sm:text-xs capitalize">{trade.market_type}</span>
                         </div>
-                        <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 leading-tight">
+                        <div className="text-[10px] sm:text-xs text-neutral-500 mt-0.5 leading-tight break-words">
                           Lot {trade.lot_size} &middot; Risk {currency.symbol}{trade.risk_value} &middot; Profit Target {trade.target_amount ? formatMoneyCompact(trade.target_amount) : '-'}
-                          {trade.notes && <span> &middot; &ldquo;{trade.notes}&rdquo;</span>}
+                          {trade.notes && <span className="break-words"> &middot; &ldquo;{trade.notes}&rdquo;</span>}
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-2">

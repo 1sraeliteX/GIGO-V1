@@ -1,6 +1,6 @@
-export function fmtMoney(n) {
+export function fmtMoney(n, symbol = '$') {
   const abs = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${n < 0 ? '-' : ''}$${abs}`;
+  return `${n < 0 ? '-' : ''}${symbol}${abs}`;
 }
 
 export function resultStyle(result) {

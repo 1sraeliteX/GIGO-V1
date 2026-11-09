@@ -17,12 +17,31 @@ const PLAN_COLOR = {
 function PlanCard({ plan: initialPlan, onSaved }) {
   const [plan, setPlan]     = useState(initialPlan);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const { success, error: toastError } = useToast();
 
   // Keep local state in sync if parent refreshes
   useEffect(() => { setPlan(initialPlan); }, [initialPlan]);
 
   const set = (field, value) => setPlan(p => ({ ...p, [field]: value }));
+
+  // Visibility saves immediately — only is_active is sent so unsaved edits
+  // in the other fields are neither clobbered nor required before toggling.
+  const handleToggle = async () => {
+    const next = !plan.is_active;
+    set('is_active', next);
+    setToggling(true);
+    try {
+      const res = await api.admin.plans.update(plan.plan_key, { is_active: next ? 1 : 0 });
+      setPlan(p => ({ ...p, is_active: res.plan.is_active }));
+      success(`${plan.label} plan ${next ? 'activated' : 'hidden'}`);
+    } catch (e) {
+      set('is_active', !next);
+      toastError(e.message);
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -61,8 +80,8 @@ function PlanCard({ plan: initialPlan, onSaved }) {
           <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold border ${PLAN_COLOR[plan.plan_key] ?? 'bg-neutral-800 text-neutral-300 border-neutral-700'}`}>
             {PLAN_BADGE[plan.plan_key] ?? plan.days + 'd'}
           </span>
-          <div>
-            <p className="text-sm font-semibold text-white">{plan.label}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white truncate" title={plan.label}>{plan.label}</p>
             <p className="text-[11px] text-neutral-500 capitalize">{plan.plan_key} plan</p>
           </div>
         </div>
@@ -70,13 +89,17 @@ function PlanCard({ plan: initialPlan, onSaved }) {
         <div className="flex items-center gap-2">
           <span className="text-xs text-neutral-500">{plan.is_active ? 'Active' : 'Hidden'}</span>
           <button
-            onClick={() => set('is_active', !plan.is_active)}
-            className="text-neutral-400 hover:text-white transition-colors"
-            title="Toggle plan visibility on payment page"
+            onClick={handleToggle}
+            disabled={toggling}
+            className="text-neutral-400 hover:text-white transition-colors disabled:opacity-60"
+            title="Toggle plan visibility on payment page — saves instantly"
+            aria-pressed={!!plan.is_active}
           >
-            {plan.is_active
-              ? <ToggleRight className="w-5 h-5 text-emerald-400" />
-              : <ToggleLeft  className="w-5 h-5" />
+            {toggling
+              ? <Loader2 className="w-5 h-5 animate-spin" />
+              : plan.is_active
+                ? <ToggleRight className="w-5 h-5 text-emerald-400" />
+                : <ToggleLeft  className="w-5 h-5" />
             }
           </button>
         </div>
@@ -177,11 +200,11 @@ function PlanCard({ plan: initialPlan, onSaved }) {
         <div className="bg-neutral-800/60 rounded-lg px-4 py-3 border border-neutral-700/50">
           <p className="text-[11px] text-neutral-500 mb-2 uppercase tracking-wider">Preview — as shown to users</p>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white">{plan.label || '—'}</p>
-              <p className="text-xs text-neutral-500">{plan.description || '—'}</p>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-white truncate" title={plan.label}>{plan.label || '—'}</p>
+              <p className="text-xs text-neutral-500 break-words">{plan.description || '—'}</p>
             </div>
-            <div className="text-right">
+            <div className="text-right shrink-0 break-words">
               <p className="text-lg font-bold text-white">${amountUsd.toFixed(2)}</p>
               <p className="text-xs text-neutral-400">₦{ngnTotal.toLocaleString()}</p>
               <p className="text-[11px] text-neutral-400">${perMonth.toFixed(2)}/month</p>
@@ -243,7 +266,7 @@ export default function PlansPage() {
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm">{error}</div>
+        <div className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>
       )}
 
       {loading ? (
@@ -266,7 +289,7 @@ export default function PlansPage() {
         <ul className="text-xs text-neutral-500 space-y-1 list-disc list-inside">
           <li>Set a <span className="text-white">Payment Link</span> to redirect users directly to your Paystack payment page, crypto wallet, or any custom URL when they click a plan.</li>
           <li>Leave the link <span className="text-white">empty</span> to use the default Paystack API flow (initializes a transaction server-side).</li>
-          <li>Use the <span className="text-white">Active toggle</span> to show or hide a plan on the subscribe modal without deleting it.</li>
+          <li>Use the <span className="text-white">Active toggle</span> to show or hide a plan on the subscribe modal — it saves instantly, no Save button needed.</li>
           <li>The <span className="text-white">NGN Rate</span> controls the ₦ display only — it does not affect what Paystack charges.</li>
         </ul>
       </div>

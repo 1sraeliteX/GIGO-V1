@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Middleware;
 use App\Core\Request;
 use App\Core\Database;
+use App\Services\EmailService;
 
 class SubscriptionController
 {
@@ -314,6 +315,21 @@ class SubscriptionController
         ]);
 
         $daysRemaining = max(0, (int) (new \DateTime())->diff($endDate)->format('%a'));
+
+        try {
+            $uStmt = $db->prepare('SELECT name, email FROM users WHERE id = :id');
+            $uStmt->execute([':id' => $userId]);
+            if ($u = $uStmt->fetch()) {
+                EmailService::sendTemplate($u['email'], 'subscription_confirmed', [
+                    'name' => $u['name'],
+                    'plan' => ucfirst($planType),
+                    'days' => (string) $daysToAdd,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('subscription_confirmed email failed: ' . $e->getMessage());
+        }
+
         return ['end_date' => $endDate->format('Y-m-d H:i:s'), 'days_remaining' => $daysRemaining];
     }
 
