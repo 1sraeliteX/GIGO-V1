@@ -24,6 +24,10 @@ import SubscribeModal from '../components/SubscribeModal';
 import HelpModal from '../components/HelpModal';
 import OnboardingTour, { DASHBOARD_STEPS, SETUP_STEPS } from '../components/OnboardingTour';
 
+// Each tour stage remembers its own completion, so finishing the setup guide does
+// not silence the dashboard tour that follows the first account.
+const tourDoneKey = (accountCount) => (accountCount === 0 ? 'trador_setup_tour_complete' : 'trador_tour_complete');
+
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
   const { currency, formatMoney, setCurrencyCode } = useCurrency();
@@ -120,6 +124,7 @@ export default function Dashboard() {
       await loadAccounts();
       setSelectedAccountId(data.id);
       localStorage.setItem('onboarding_complete', 'true');
+      localStorage.setItem('trador_setup_tour_complete', 'true');
       success('Account created! Welcome to Tradora.');
     } catch (err) {
       setCreateError(err.message || 'Failed to create account. Please try again.');
@@ -134,16 +139,20 @@ export default function Dashboard() {
   };
 
   const finishTour = () => {
-    localStorage.setItem('trador_tour_complete', 'true');
+    localStorage.setItem(tourDoneKey(accounts.length), 'true');
     setShowTour(false);
   };
 
   useEffect(() => {
-    // A freshly registered account has no trading data yet, so the tour is the
-    // only guide it gets; the overlay takes over from the first signed-in session.
-    if (accountsLoaded && accounts.length === 0
-      && !localStorage.getItem('trador_tour_complete')
-      && !localStorage.getItem('onboarding_complete')) {
+    // A freshly registered account has no trading data yet, so the setup guide is the
+    // only thing on screen; once its first account exists, hand it to the dashboard tour.
+    if (!accountsLoaded) return;
+    if (accounts.length === 0) {
+      if (!localStorage.getItem('trador_setup_tour_complete')) setShowTour(true);
+      return;
+    }
+    if (localStorage.getItem('trador_setup_tour_complete')
+      && !localStorage.getItem('trador_tour_complete')) {
       setShowTour(true);
     }
   }, [accountsLoaded, accounts]);

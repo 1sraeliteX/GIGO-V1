@@ -58,7 +58,7 @@ export default function SupportChat() {
         ...prev,
         { id: nextId(), from: 'bot', text, options, ...extra },
       ]);
-    }, 550);
+    }, 3000);
     timers.current.push(timer);
   };
 
@@ -148,7 +148,7 @@ export default function SupportChat() {
               <p className="text-sm font-semibold text-white leading-tight">Tradora Support</p>
               <p className="text-[11px] text-emerald-400 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Automated answers
+                Tradora AI
               </p>
             </div>
             <button
