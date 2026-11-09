@@ -75,8 +75,8 @@ function PlanCard({ plan: initialPlan, onSaved }) {
   return (
     <div className={`bg-neutral-900 border rounded-xl overflow-hidden ${plan.is_active ? 'border-neutral-800' : 'border-neutral-800 opacity-60'}`}>
       {/* Card header */}
-      <div className="px-5 py-4 border-b border-neutral-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-4 sm:px-5 border-b border-neutral-800 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold border ${PLAN_COLOR[plan.plan_key] ?? 'bg-neutral-800 text-neutral-300 border-neutral-700'}`}>
             {PLAN_BADGE[plan.plan_key] ?? plan.days + 'd'}
           </span>
@@ -106,20 +106,20 @@ function PlanCard({ plan: initialPlan, onSaved }) {
       </div>
 
       {/* Fields */}
-      <div className="p-5 space-y-4">
+      <div className="p-4 sm:p-5 space-y-4">
 
         {/* Label + Description side by side */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="min-w-0">
             <label className="block text-[11px] text-neutral-400 mb-1">Plan Label</label>
             <input
               type="text"
               value={plan.label}
               onChange={e => set('label', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 sm:px-3 text-sm text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-[11px] text-neutral-400 mb-1">
               <FileText className="w-3 h-3 inline mr-1" />Description
             </label>
@@ -127,14 +127,14 @@ function PlanCard({ plan: initialPlan, onSaved }) {
               type="text"
               value={plan.description}
               onChange={e => set('description', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 sm:px-3 text-sm text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
 
         {/* Days + USD price + NGN rate */}
-        <div className="grid grid-cols-3 gap-3">
-          <div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+          <div className="min-w-0">
             <label className="block text-[11px] text-neutral-400 mb-1">
               <Calendar className="w-3 h-3 inline mr-1" />Days
             </label>
@@ -142,10 +142,10 @@ function PlanCard({ plan: initialPlan, onSaved }) {
               type="number" min="1" max="9999"
               value={plan.days}
               onChange={e => set('days', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 sm:px-3 text-sm text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-[11px] text-neutral-400 mb-1">
               <DollarSign className="w-3 h-3 inline mr-1" />Price (USD)
             </label>
@@ -153,10 +153,10 @@ function PlanCard({ plan: initialPlan, onSaved }) {
               type="number" min="0" step="0.01"
               value={plan.amount_usd}
               onChange={e => set('amount_usd', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 sm:px-3 text-sm text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="block text-[11px] text-neutral-400 mb-1">
               NGN Rate (₦/$1)
             </label>
@@ -164,7 +164,7 @@ function PlanCard({ plan: initialPlan, onSaved }) {
               type="number" min="1"
               value={plan.ngn_rate}
               onChange={e => set('ngn_rate', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-2 py-2 sm:px-3 text-sm text-white focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function PlansPage() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-white mb-1">Plans</h1>

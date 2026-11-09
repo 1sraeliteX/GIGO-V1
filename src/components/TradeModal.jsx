@@ -214,20 +214,20 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-neutral-900 rounded-xl border border-neutral-800 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-neutral-800">
-          <h2 className="text-lg font-semibold text-white">{trade ? 'Edit Trade' : duplicateTrade ? 'Duplicate Trade' : 'Add Trade'}</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-white text-xl leading-none">&times;</button>
+      <div className="bg-neutral-900 rounded-xl border border-neutral-800 w-full max-w-lg mx-2 sm:mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-4 py-4 sm:p-6 border-b border-neutral-800">
+          <h2 className="text-base sm:text-lg font-semibold text-white truncate">{trade ? 'Edit Trade' : duplicateTrade ? 'Duplicate Trade' : 'Add Trade'}</h2>
+          <button onClick={onClose} aria-label="Close" className="text-neutral-400 hover:text-white text-xl leading-none shrink-0 ml-2">&times;</button>
         </div>
 
-        {error && <div className="mx-6 mt-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">{error}</div>}
+        {error && <div className="mx-4 sm:mx-6 mt-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm text-center break-words">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="px-4 py-4 sm:p-6 space-y-4">
           {accounts && accounts.length > 0 && (
             <div>
               <label className="block text-sm text-neutral-400 mb-1">Account</label>
               <select value={form.account_id} onChange={(e) => handleChange('account_id', e.target.value)}
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500">
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500">
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}{a.capital > 0 ? ` (${formatMoney(a.capital)})` : ''}</option>
                 ))}
@@ -238,15 +238,15 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Date</label>
             <input type="date" value={form.trade_date} onChange={(e) => handleChange('trade_date', e.target.value)} required
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
           </div>
 
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Market Type</label>
-            <div className="flex gap-2 flex-wrap">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
               {['forex', 'crypto', 'commodities', 'derived'].map((type) => (
                 <button key={type} type="button" onClick={() => handleChange('market_type', type)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium transition-colors capitalize whitespace-nowrap ${
+                  className={`py-2 px-2 rounded-lg text-sm font-medium transition-colors capitalize text-center min-w-0 truncate sm:flex-1 ${
                     form.market_type === type
                       ? 'bg-emerald-600 text-[#fff]'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
@@ -266,7 +266,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
               onFocus={() => { setSearchOpen(true); setSearchQuery(''); }}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search or type a symbol..."
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 placeholder:text-neutral-600"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 placeholder:text-neutral-600"
               autoComplete="off"
             />
             {searchOpen && filtered.length > 0 && (
@@ -306,18 +306,18 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="min-w-0">
               <label className="block text-sm text-neutral-400 mb-1">Lot Size</label>
               <input type="text" inputMode="decimal" value={form.lot_size} onChange={(e) => handleChange('lot_size', e.target.value)} required
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm text-neutral-400 mb-1">Risk Type</label>
               <div className="flex gap-2">
                 {['amount', 'percentage'].map((type) => (
                   <button key={type} type="button" onClick={() => handleChange('risk_type', type)}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize ${
+                    className={`flex-1 min-w-0 py-2 px-2 rounded-lg text-[11px] sm:text-sm font-medium transition-colors capitalize text-center leading-tight ${
                       form.risk_type === type
                         ? 'bg-emerald-600 text-[#fff]'
                         : 'bg-neutral-800 text-neutral-400 hover:text-white'
@@ -329,16 +329,16 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="min-w-0">
               <label className="block text-sm text-neutral-400 mb-1">Risk Value ({riskUnit})</label>
               <input type="text" inputMode="decimal" value={form.risk_value} onChange={(e) => handleChange('risk_value', e.target.value)} required
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block text-sm text-neutral-400 mb-1">Risk/Reward</label>
               <select value={form.risk_reward} onChange={(e) => handleChange('risk_reward', e.target.value)}
-                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500">
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500">
                 <option value="">Select</option>
                 <option value="1:1">1:1</option>
                 <option value="1:2">1:2</option>
@@ -363,7 +363,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Profit Target ({riskUnit})</label>
             <input type="text" inputMode="decimal" value={form.target_amount} onChange={(e) => handleChange('target_amount', e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
           </div>
 
           <div>
@@ -371,7 +371,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
             <div className="flex gap-2">
               {['win', 'loss'].map((r) => (
                 <button key={r} type="button" onClick={() => handleChange('result', r)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+                  className={`flex-1 min-w-0 py-2 rounded-lg text-sm font-medium transition-colors capitalize text-center ${
                     form.result === r
                       ? r === 'win' ? 'bg-emerald-600 text-[#fff]' : 'bg-red-600 text-[#fff]'
                       : 'bg-neutral-800 text-neutral-400 hover:text-white'
@@ -385,7 +385,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Trade Outcome ({currency.symbol})</label>
             <input type="text" inputMode="decimal" value={form.pnl_amount} onChange={(e) => handleChange('pnl_amount', e.target.value)} required
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500" />
           </div>
 
           <div>
@@ -399,7 +399,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
                     key={s.key}
                     type="button"
                     onClick={() => handleChange('session', isActive ? '' : s.key)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                    className={`flex items-center justify-center gap-2 px-2 sm:px-3 py-2.5 rounded-lg text-sm font-medium transition-all border min-w-0 ${
                       isActive
                         ? 'text-white border-transparent'
                         : 'bg-neutral-800 text-neutral-400 hover:text-white border-neutral-700 hover:border-neutral-600'
@@ -407,7 +407,7 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
                     style={isActive ? { backgroundColor: s.color + '33', borderColor: s.color, color: s.color } : {}}
                   >
                     <span className="text-base leading-none">{s.emoji}</span>
-                    <span className="flex flex-col items-start min-w-0">
+                    <span className="flex flex-col items-center text-center min-w-0">
                       <span className="truncate">{s.label}</span>
                       {localTime && (
                         <span className="text-[10px] opacity-60 font-normal truncate">{localTime}</span>
@@ -423,16 +423,16 @@ export default function TradeModal({ isOpen, onClose, onSave, trade, duplicateTr
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Notes (optional)</label>
             <textarea value={form.notes} onChange={(e) => handleChange('notes', e.target.value)} rows={3}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 resize-none" />
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 sm:px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 resize-none" />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2 sm:gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2.5 transition-colors">
+              className="flex-1 min-w-0 text-center bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg py-2.5 transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 transition-colors disabled:opacity-50">
+              className="flex-1 min-w-0 text-center bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 transition-colors disabled:opacity-50">
               {saving ? 'Saving...' : trade ? 'Update Trade' : 'Save Trade'}
             </button>
           </div>

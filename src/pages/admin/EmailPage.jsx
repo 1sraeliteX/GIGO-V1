@@ -94,12 +94,12 @@ function SettingsTab() {
         <input value={form.smtp_host} onChange={set('smtp_host')} placeholder="smtp.gmail.com" className={`${inputClass} mt-1 font-mono`} />
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
-        <label className={labelClass}>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <label className={`${labelClass} min-w-0`}>
           Port
           <input value={form.smtp_port} onChange={set('smtp_port')} placeholder="587" className={`${inputClass} mt-1 font-mono`} />
         </label>
-        <label className={labelClass}>
+        <label className={`${labelClass} min-w-0`}>
           Encryption
           <select value={form.smtp_secure} onChange={set('smtp_secure')} className={`${inputClass} mt-1`}>
             <option value="tls">STARTTLS</option>
@@ -126,12 +126,12 @@ function SettingsTab() {
         </div>
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
-        <label className={labelClass}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <label className={`${labelClass} min-w-0`}>
           From email
           <input value={form.from_email} onChange={set('from_email')} placeholder="no-reply@tradora.com" className={`${inputClass} mt-1 font-mono`} />
         </label>
-        <label className={labelClass}>
+        <label className={`${labelClass} min-w-0`}>
           From name
           <input value={form.from_name} onChange={set('from_name')} placeholder="Tradora" className={`${inputClass} mt-1`} />
         </label>
@@ -373,7 +373,7 @@ export default function EmailPage() {
   const [tab, setTab] = useState('settings');
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <Mail className="w-5 h-5 text-emerald-400" />

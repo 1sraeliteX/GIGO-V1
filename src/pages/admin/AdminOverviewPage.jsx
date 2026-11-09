@@ -12,13 +12,13 @@ function StatCard({ icon: Icon, label, value, color = 'emerald' }) {
   };
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 flex items-center gap-4">
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-neutral-500 mb-0.5">{label}</p>
-        <p className="text-2xl font-bold text-white">
+        <p className="text-xl sm:text-2xl font-bold text-white min-w-0 break-words">
           {value === null ? <span className="text-neutral-600 text-base">—</span> : value}
         </p>
       </div>
@@ -39,7 +39,7 @@ export default function AdminOverviewPage() {
   }, []);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <h1 className="text-xl font-bold text-white mb-1">Overview</h1>
       <p className="text-sm text-neutral-500 mb-8">Platform summary at a glance.</p>
 

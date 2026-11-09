@@ -310,7 +310,7 @@ export default function SubscriptionsPage() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-white mb-1">Subscriptions</h1>
         <p className="text-sm text-neutral-500">

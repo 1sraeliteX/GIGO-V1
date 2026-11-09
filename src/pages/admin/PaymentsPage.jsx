@@ -60,7 +60,7 @@ export default function PaymentsPage() {
   const inputClass = 'w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono';
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <KeyRound className="w-5 h-5 text-emerald-400" />

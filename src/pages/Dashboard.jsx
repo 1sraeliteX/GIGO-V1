@@ -523,9 +523,9 @@ export default function Dashboard() {
 
             <div className="flex items-center gap-3 mb-4">
               {accountCapital > 0 && (
-                <div className="flex items-center gap-1 sm:gap-3 bg-neutral-900 rounded-xl border border-neutral-800 px-4 sm:px-5 py-3 flex-1 min-w-0">
+                <div className="flex items-center justify-center gap-1 sm:gap-3 bg-neutral-900 rounded-xl border border-neutral-800 px-3 sm:px-5 py-3 flex-1 min-w-0 text-center">
                   <span className="text-xs sm:text-sm text-neutral-400 shrink-0">Account Capital:</span>
-                  <span className="text-base sm:text-lg font-bold text-white truncate">
+                  <span className="text-base sm:text-lg font-bold text-white min-w-0 truncate">
                     {formatMoney(accountCapital)}
                   </span>
                 </div>
