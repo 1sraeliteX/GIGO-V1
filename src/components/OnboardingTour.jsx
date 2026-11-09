@@ -30,16 +30,39 @@ export const DASHBOARD_STEPS = [
     position: 'left',
   },
   {
-    target: '[data-tour="trades-list"]',
-    title: 'Trade History',
-    content: 'View all trades for the current month. Edit, duplicate, or delete entries from here.',
-    position: 'left',
-  },
-  {
     target: '[data-tour="menu"]',
     title: 'More Features',
-    content: 'Access Grind Report, Balance Simulation, and the Admin panel from the menu.',
+    content: 'The menu holds your trade history, Grind Report, Balance Simulation and, for staff, the Admin panel.',
     position: 'bottom',
+  },
+];
+
+// Brand new sign-ups land on the first-account form, where the dashboard header,
+// stats and calendar are not rendered yet. These steps stay inside that form.
+export const SETUP_STEPS = [
+  {
+    target: '[data-tour="setup-welcome"]',
+    title: 'Start With One Account',
+    content: 'Your journal is organised per trading account — personal, prop firm or demo — so each keeps its own balance and statistics.',
+    position: 'bottom',
+  },
+  {
+    target: '[data-tour="setup-form"]',
+    title: 'Account Details',
+    content: 'Give the account a name you will recognise later, then set the capital you started it with.',
+    position: 'top',
+  },
+  {
+    target: '[data-tour="setup-currency"]',
+    title: 'Currency',
+    content: 'Pick the currency this account is held in. Every balance, P&L and export for it then shows that symbol.',
+    position: 'top',
+  },
+  {
+    target: '[data-tour="setup-create"]',
+    title: 'Create And Continue',
+    content: 'Creating the account unlocks the calendar, monthly stats and the add-trade button. You can add more accounts later from the switcher.',
+    position: 'top',
   },
 ];
 

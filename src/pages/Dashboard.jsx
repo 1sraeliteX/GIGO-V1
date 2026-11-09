@@ -22,7 +22,7 @@ import AccountSwitcher from '../components/AccountSwitcher';
 import OnboardingOverlay from '../components/OnboardingOverlay';
 import SubscribeModal from '../components/SubscribeModal';
 import HelpModal from '../components/HelpModal';
-import OnboardingTour from '../components/OnboardingTour';
+import OnboardingTour, { DASHBOARD_STEPS, SETUP_STEPS } from '../components/OnboardingTour';
 
 export default function Dashboard() {
   const { user, logout, subscription, subLoading, fetchSubscription } = useAuth();
@@ -47,7 +47,7 @@ export default function Dashboard() {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [onboardingName, setOnboardingName] = useState('');
   const [onboardingCapital, setOnboardingCapital] = useState('');
-  const [onboardingCurrency, setOnboardingCurrency] = useState(user?.currency || currency.code);
+  const [onboardingCurrency, setOnboardingCurrency] = useState(currency.code);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [statsKey, setStatsKey] = useState(0);
@@ -94,13 +94,13 @@ export default function Dashboard() {
   const appliedCurrency = useRef(null);
   useEffect(() => {
     const account = accounts.find(a => a.id === selectedAccountId);
-    const code = account?.currency || user?.currency;
+    const code = account?.currency;
     if (!code) return;
     const key = `${selectedAccountId}:${code}`;
     if (appliedCurrency.current === key) return;
     appliedCurrency.current = key;
     setCurrencyCode(code);
-  }, [accounts, selectedAccountId, user, setCurrencyCode]);
+  }, [accounts, selectedAccountId, setCurrencyCode]);
 
   useEffect(() => {
     const now = new Date();
@@ -133,6 +133,21 @@ export default function Dashboard() {
     setShowOnboarding(false);
   };
 
+  const finishTour = () => {
+    localStorage.setItem('trador_tour_complete', 'true');
+    setShowTour(false);
+  };
+
+  useEffect(() => {
+    // A freshly registered account has no trading data yet, so the tour is the
+    // only guide it gets; the overlay takes over from the first signed-in session.
+    if (accountsLoaded && accounts.length === 0
+      && !localStorage.getItem('trador_tour_complete')
+      && !localStorage.getItem('onboarding_complete')) {
+      setShowTour(true);
+    }
+  }, [accountsLoaded, accounts]);
+
   useEffect(() => {
     loadAccounts();
   }, [loadAccounts]);
@@ -151,8 +166,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    // Only show onboarding tour after the user has at least one account.
-    // Brand new users (zero accounts) go through the inline setup form first.
+    // The welcome overlay is for accounts that already have a journal set up.
     if (accountsLoaded && accounts.length > 0 && !localStorage.getItem('onboarding_complete')) {
       setShowOnboarding(true);
     }
@@ -432,7 +446,15 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 pb-16 sm:pb-8">
         {!accountsLoaded ? null : accounts.length === 0 ? (
           <div className="max-w-md mx-auto mt-16 text-center">
-            <div className="flex items-center justify-end mb-4">
+            <div className="flex items-center justify-end gap-2 mb-4">
+              <button
+                onClick={() => setShowTour(true)}
+                className="text-xs text-neutral-400 hover:text-emerald-400 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+                title="Take a tour"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                Take a tour
+              </button>
               <button
                 onClick={logout}
                 className="text-xs bg-red-600 hover:bg-red-500 text-[#fff] rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
@@ -441,9 +463,9 @@ export default function Dashboard() {
                 Logout
               </button>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Tradora</h2>
+            <h2 className="text-2xl font-bold text-white mb-2" data-tour="setup-welcome">Welcome to Tradora</h2>
             <p className="text-neutral-400 mb-8">Create your first trading account to get started.</p>
-            <form onSubmit={handleCreateAccount} className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
+            <form onSubmit={handleCreateAccount} data-tour="setup-form" className="bg-neutral-900 rounded-xl border border-neutral-800 p-6 space-y-4 text-left">
               {createError && (
                 <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 text-sm break-words">
                   {createError}
@@ -457,7 +479,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <label className="block text-sm text-neutral-400 mb-1">Capital Amount</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2" data-tour="setup-currency">
                   <CurrencyPicker
                     value={onboardingCurrency}
                     onChange={setOnboardingCurrency}
@@ -469,6 +491,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <button type="submit" disabled={creating}
+                data-tour="setup-create"
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#fff] rounded-lg py-2.5 font-medium transition-colors disabled:opacity-50">
                 {creating ? 'Creating...' : 'Create Account'}
               </button>
@@ -621,13 +644,16 @@ export default function Dashboard() {
             isOpen={!!showHelp}
             onClose={() => setShowHelp(null)}
           />
-
-          <OnboardingTour
-            isOpen={showTour}
-            onComplete={() => { setShowTour(false); localStorage.setItem('trador_tour_complete', 'true'); }}
-            onSkip={() => { setShowTour(false); localStorage.setItem('trador_tour_complete', 'true'); }}
-          />
         </>
+      )}
+
+      {accountsLoaded && (
+        <OnboardingTour
+          isOpen={showTour}
+          steps={accounts.length === 0 ? SETUP_STEPS : DASHBOARD_STEPS}
+          onComplete={finishTour}
+          onSkip={finishTour}
+        />
       )}
     </div>
   );

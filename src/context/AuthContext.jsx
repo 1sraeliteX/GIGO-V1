@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { useCurrency } from './CurrencyContext';
 
 const AuthContext = createContext(null);
 
@@ -17,7 +16,6 @@ function readStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const { setCurrencyCode } = useCurrency();
   // Must be synchronous: route guards read user.is_admin on the first render, so an
   // effect-set user would bounce every /admin deep link or refresh back to the dashboard.
   const [user, setUser] = useState(readStoredUser);
@@ -84,8 +82,6 @@ export function AuthProvider({ children }) {
     // Clear the other storage to avoid conflicts
     (remember ? sessionStorage : localStorage).removeItem('token');
     (remember ? sessionStorage : localStorage).removeItem('user');
-    // The currency chosen at sign-up is the display currency for balances and accounts.
-    if (userData?.currency) setCurrencyCode(userData.currency);
   };
 
   const logout = () => {

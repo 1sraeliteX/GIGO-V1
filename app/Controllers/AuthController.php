@@ -47,16 +47,10 @@ class AuthController
                 return;
             }
 
-            $currency = strtoupper(trim((string) ($data['currency'] ?? 'USD')));
-            if (!preg_match('/^[A-Z]{3}$/', $currency)) {
-                $currency = 'USD';
-            }
-
             $userId = User::create([
                 'name'     => $data['name'],
                 'email'    => $data['email'],
                 'password' => $data['password'],
-                'currency' => $currency,
             ]);
 
             $config = require __DIR__ . '/../../config/config.php';
@@ -87,7 +81,6 @@ class AuthController
                     'id'                    => $userId,
                     'name'                  => $data['name'],
                     'email'                 => $data['email'],
-                    'currency'              => $currency,
                     'max_trades_per_day'    => null,
                     'is_admin'              => false,
                     'subscription_override' => true,
@@ -141,7 +134,6 @@ class AuthController
                     'id'                    => $user['id'],
                     'name'                  => $user['name'],
                     'email'                 => $user['email'],
-                    'currency'              => $user['currency'] ?? 'USD',
                     'max_trades_per_day'    => $user['max_trades_per_day'] ?? null,
                     'is_admin'              => (bool) ($user['is_admin'] ?? false),
                     'subscription_override' => (bool) ($user['subscription_override'] ?? false),

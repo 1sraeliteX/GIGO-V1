@@ -25,7 +25,6 @@ require_once __DIR__ . '/app/Migrations/017_create_site_settings_table.php';
 require_once __DIR__ . '/app/Migrations/018_add_currency_to_accounts.php';
 require_once __DIR__ . '/app/Migrations/019_create_email_settings_table.php';
 require_once __DIR__ . '/app/Migrations/020_create_email_templates_table.php';
-require_once __DIR__ . '/app/Migrations/021_add_currency_to_users.php';
 
 $action = $argv[1] ?? 'up';
 
@@ -51,7 +50,6 @@ if ($action === 'up') {
         'App\Migrations\AddCurrencyToAccounts::up',
         'App\Migrations\CreateEmailSettingsTable::up',
         'App\Migrations\CreateEmailTemplatesTable::up',
-        'App\Migrations\AddCurrencyToUsers::up',
     ];
     foreach ($steps as $step) {
         try {
